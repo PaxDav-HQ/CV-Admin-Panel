@@ -7,6 +7,8 @@ import { useDispatch, useSelector } from 'react-redux';
 import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
 import AdminDashboardMain from './components/AdminDashboardMain';
+import ManageUsers from './components/ManageUsers';
+import AllListings from './components/AllListings';
 
 
 function App() {
@@ -28,8 +30,8 @@ function App() {
         <Route path='/login' element={<Login />} />        
         <Route path='/admin' element={<Dashboard />}>
           <Route path='/admin/' element={<AdminDashboardMain />} />
-          {/* <Route path='/admin/bookings' element={<Bookings />} /> */}
-          {/* <Route path='/admin/saved-searches' element={<MyFavoritesPage />} /> */}
+          <Route path='/admin/users' element={<ManageUsers />} />
+          <Route path='/admin/listings/all' element={<AllListings />} />
           {/* <Route path='/admin/profile' element={<EditProfile />} /> */}
           {/* <Route path='/admin/transactions' element={<TransactionHistory />} /> */}
         </Route>

@@ -59,13 +59,13 @@ const SidenavList = () => {
       ]
     },
     { title: "Services", icon: <WorkOutlineOutlined />, path: "/admin/services" },
-    { title: "Bookings", icon: <CalendarTodayOutlined />, path: "/admin/bookings" },
-    { title: "Verification", icon: <VerifiedUserOutlined />, path: "/admin/verification" },
+    // { title: "Bookings", icon: <CalendarTodayOutlined />, path: "/admin/bookings" },
+    // { title: "Verification", icon: <VerifiedUserOutlined />, path: "/admin/verification" },
     { title: "Earnings & Transactions", icon: <AccountBalanceWalletOutlined />, path: "/admin/transactions" },
     { title: "Reports & Analytics", icon: <BarChartOutlined />, path: "/admin/analytics" },
     { title: "Notifications", icon: <NotificationsNoneOutlined />, path: "/admin/notifications" },
-    { title: "Settings", icon: <SettingsOutlined />, path: "/admin/settings" },
-    { title: "System Logs", icon: <HistoryOutlined />, path: "/admin/system-logs" }
+    // { title: "Settings", icon: <SettingsOutlined />, path: "/admin/settings" },
+    // { title: "System Logs", icon: <HistoryOutlined />, path: "/admin/system-logs" }
   ];
 
   const logout = () => {

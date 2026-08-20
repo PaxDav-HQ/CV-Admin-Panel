@@ -30,9 +30,14 @@ const AdminDashboardMain = () => {
   useEffect(() => {
     if (!token) return;
     
+    const fromDate = "2026-07-01T00:00:00Z"; // your 'from' state
+    const toDate = "2026-07-10T23:59:59Z";   // your 'to' state
+
+    // Encoded template configuration execution
+    const apiQueryPath = `from=${encodeURIComponent(fromDate)}&to=${encodeURIComponent(toDate)}`;
     setIsLoading(true);
     axios
-      .get(`${uri}admin/dashboard`, {
+      .get(`${uri}admin/dashboard?${apiQueryPath}`, {
         headers: { Authorization: `Bearer ${token}` }
       })
       .then((res) => {
