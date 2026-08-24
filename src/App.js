@@ -6,14 +6,23 @@ import axios from 'axios';
 import { useDispatch, useSelector } from 'react-redux';
 import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
-import AdminDashboardMain from './components/AdminDashboardMain';
-import ManageUsers from './components/ManageUsers';
-import AllListings from './components/AllListings';
+import AdminDashboardMain from './components/adminDashboard/AdminDashboardMain';
+import ManageUsers from './components/manageUsers/ManageUsers';
+import AllListings from './components/allListings/AllListings';
+import { createTheme, ThemeProvider } from "@mui/material/styles";
+import ListPropertyType from './components/ListPropertyType';
+import CreateListingWizard from './components/createListing/CreateListingWizard';
+
 
 
 function App() {
   const uri = useSelector(state=>state.UriReducer.uri)
   const dispatch = useDispatch()
+  const theme = createTheme({
+    typography: {
+      fontFamily: "'Poppins', sans-serif",
+    },
+  });
   useEffect(()=>{
     axios.post(`${uri}payment/update-rates`).then((res)=>{
       let { usd, gbp, eur } = res.data.data
@@ -24,6 +33,7 @@ function App() {
   }, [])
   return (
     <div className="App">
+      <ThemeProvider theme={theme}>
       <BrowserRouter>
       <Routes>
         <Route path='/' element={<Navigate replace to="/login" />} />
@@ -35,9 +45,12 @@ function App() {
           {/* <Route path='/admin/profile' element={<EditProfile />} /> */}
           {/* <Route path='/admin/transactions' element={<TransactionHistory />} /> */}
         </Route>
+        <Route path='/admin/property-types' element={<ListPropertyType />} />
+        <Route path='/list-property/details' element={<CreateListingWizard />} />
         <Route path='*' element={<NotFound />} />
       </Routes>
       </BrowserRouter>
+      </ThemeProvider>
     </div>
   );
 }
