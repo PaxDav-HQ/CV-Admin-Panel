@@ -72,6 +72,7 @@ const HostelFields = ({ formData, onChange, onFormattedChange }) => {
           <div className="d-flex gap-1">
             {["Male", "Female", "Mixed"].map((g) => (
               <Button
+                disabled
                 key={g}
                 size="small"
                 onClick={() => onChange("gender_preference", g)}
@@ -103,7 +104,7 @@ const HostelFields = ({ formData, onChange, onFormattedChange }) => {
           <label className="form-label small fw-bold text-muted">
             Bathroom Type *
           </label>
-          <FormControl fullWidth size="small">
+          <FormControl fullWidth size="small" disabled>
             <Select
               value={formData.bathroom_type}
               onChange={(e) => onChange("bathroom_type", e.target.value)}
@@ -125,7 +126,7 @@ const HostelFields = ({ formData, onChange, onFormattedChange }) => {
           <label className="form-label small fw-bold text-muted">
             Furnishing Level *
           </label>
-          <FormControl fullWidth size="small">
+          <FormControl fullWidth size="small" disabled>
             <Select
               value={formData.furnishing_level}
               onChange={(e) => onChange("furnishing_level", e.target.value)}

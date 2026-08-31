@@ -2,8 +2,8 @@ import React, { useState, useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useSelector } from "react-redux";
 import axios from "axios";
-import { Box, Container } from "@mui/material";
-
+import { Box, Container, Snackbar, Alert } from "@mui/material";
+import { extractErrorMessage } from "../../utils/errorParser";
 import {
   CONFIG_BY_TYPE,
   STATE_COORDINATES,
@@ -29,6 +29,13 @@ const CreateListingWizard = () => {
   const [loading, setLoading] = useState(false);
   const [availableAmenities, setAvailableAmenities] = useState([]);
 
+  // Toast & Error State
+  const [toast, setToast] = useState({
+    open: false,
+    message: "",
+    severity: "error",
+  });
+
   // Form State
   const [formData, setFormData] = useState({
     name: "",
@@ -38,7 +45,7 @@ const CreateListingWizard = () => {
     address: "",
     latitude: STATE_COORDINATES["Lagos"].lat,
     longitude: STATE_COORDINATES["Lagos"].lon,
-    year_established: "2020",
+    category: "Sale",
 
     capacity: "",
     room_type: "Shared Room",
@@ -62,7 +69,7 @@ const CreateListingWizard = () => {
     pricing_type: typeConfig.defaultPriceType,
     total_price: "",
     security_deposit: "",
-    min_booking: "1 Month",
+    min_booking: 30, // 30 days numeric default
     additional_charges: "",
     available_from: new Date().toISOString().split("T")[0],
     vacancy_status: "Available Now",
@@ -138,6 +145,11 @@ const CreateListingWizard = () => {
     }));
   };
 
+  const handleCloseToast = (event, reason) => {
+    if (reason === "clickaway") return;
+    setToast((prev) => ({ ...prev, open: false }));
+  };
+
   const handleSubmitListing = async () => {
     setLoading(true);
 
@@ -154,10 +166,10 @@ const CreateListingWizard = () => {
 
     postData.append("name", formData.name);
     postData.append("description", formData.description);
-    postData.append("short_description", formData.short_description);
+    postData.append("about", formData.short_description);
     postData.append("location", formData.location);
     postData.append("address", formData.address);
-    postData.append("category", typeConfig.category);
+    postData.append("category", formData.category?.toLowerCase());
     postData.append("type", propertyType);
     postData.append("total_price", Number(formData.total_price) || 0);
     postData.append("pricing_type", formData.pricing_type);
@@ -167,7 +179,7 @@ const CreateListingWizard = () => {
       "security_deposit",
       Number(formData.security_deposit) || 0
     );
-    postData.append("min_booking", formData.min_booking);
+    postData.append("min_booking", Number(formData.min_booking) || 30);
     postData.append("vacancy_status", formData.vacancy_status);
 
     if (formData.capacity)
@@ -202,10 +214,26 @@ const CreateListingWizard = () => {
         },
       });
       setLoading(false);
-      navigate("/admin/listings");
+      setToast({
+        open: true,
+        message: "Listing published successfully!",
+        severity: "success",
+      });
+      setTimeout(() => {
+        navigate("/admin/listings/all");
+      }, 1200);
     } catch (err) {
-      console.error("Failed to submit property listing:", err);
+      console.error("Failed to submit property listing:", err.response);
       setLoading(false);
+
+      // Parse and extract the backend error message
+      const errorMsg = extractErrorMessage(err, "Failed to submit listing. Please verify your inputs and try again.");
+
+      setToast({
+        open: true,
+        message: errorMsg,
+        severity: "error",
+      });
     }
   };
 
@@ -256,12 +284,39 @@ const CreateListingWizard = () => {
             propertyType={propertyType}
             availableAmenities={availableAmenities}
             loading={loading}
+            errorMessage={toast.severity === "error" && toast.open ? toast.message : ""}
             onEdit={() => setCurrentStep(1)}
             onChange={handleInputChange}
             onSubmit={handleSubmitListing}
           />
         )}
       </Container>
+
+      {/* POPUP TOASTER / ALERT */}
+      <Snackbar
+        open={toast.open}
+        autoHideDuration={6000}
+        onClose={handleCloseToast}
+        anchorOrigin={{ vertical: "top", horizontal: "right" }}
+        sx={{ mt: 7 }}
+      >
+        <Alert
+          onClose={handleCloseToast}
+          severity={toast.severity}
+          variant="filled"
+          sx={{
+            width: "100%",
+            borderRadius: "10px",
+            fontWeight: 600,
+            fontSize: "13px",
+            boxShadow: "0 8px 24px rgba(0,0,0,0.18)",
+            bgcolor: toast.severity === "success" ? "#017E53" : "#EF4444",
+            color: "#FFFFFF",
+          }}
+        >
+          {toast.message}
+        </Alert>
+      </Snackbar>
     </Box>
   );
 };

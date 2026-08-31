@@ -3,6 +3,7 @@ import axios from "axios";
 
 export const useAllListings = (uri, token) => {
   const [listings, setListings] = useState([]);
+  const [analytics, setAnalytics] = useState(null);
   const [loading, setLoading] = useState(true);
   const [page, setPage] = useState(1);
   const [limit, setLimit] = useState(10);
@@ -46,6 +47,9 @@ export const useAllListings = (uri, token) => {
       .get(`${uri}admin/listings`, { params, ...axiosConfig })
       .then((res) => {
         setListings(res.data.data || []);
+        if (res.data.analytics) {
+          setAnalytics(res.data.analytics);
+        }
         const total =
           res.data.total ??
           res.data.pagination?.total ??
@@ -83,6 +87,7 @@ export const useAllListings = (uri, token) => {
 
   return {
     listings,
+    analytics,
     loading,
     page,
     setPage,

@@ -46,135 +46,14 @@ const Step3ReviewSubmit = ({
 
   return (
     <Box>
-      <div className="d-flex justify-content-between align-items-start mb-4">
-        <div>
+        <div className="mb-4">
           <Typography variant="h5" sx={{ fontWeight: 800, color: "#111827" }}>
-            Verify your account & review your listing
+            Review your listing & Submit
           </Typography>
           <Typography variant="body2" sx={{ color: "#6B7280", mt: 0.5 }}>
-            Verification is required to publish your listing on our platform.
+            This is required to publish your listing on your platform.
           </Typography>
-        </div>
-        <Box
-          sx={{
-            p: 1.5,
-            borderRadius: "12px",
-            bgcolor: "#F0FDF4",
-            border: "1px solid #DCFCE7",
-            display: { xs: "none", sm: "flex" },
-            alignItems: "center",
-            gap: 1,
-          }}
-        >
-          <ShieldOutlined sx={{ color: "#017E53" }} />
-          <Typography
-            variant="caption"
-            sx={{ color: "#017E53", fontWeight: 700 }}
-          >
-            Verified badge eligible
-          </Typography>
-        </Box>
-      </div>
-
-      {/* VERIFICATION UPLOADS */}
-      <Paper elevation={0} className="p-4 border mb-4" sx={{ borderRadius: "16px" }}>
-        <div className="d-flex align-items-center gap-2 mb-1">
-          <Check sx={{ color: "#017E53", fontSize: 20 }} />
-          <Typography
-            variant="subtitle2"
-            sx={{ fontWeight: 700, color: "#111827" }}
-          >
-            Verification (Required)
-          </Typography>
-        </div>
-        <Typography variant="caption" className="text-muted d-block mb-3">
-          Upload your government ID and selfie to verify identity.
-        </Typography>
-
-        <div className="row g-3">
-          <div className="col-12 col-md-6">
-            <label style={{ width: "100%", cursor: "pointer" }}>
-              <input
-                type="file"
-                accept="image/*,.pdf"
-                style={{ display: "none" }}
-                onChange={(e) => onChange("id_card", e.target.files[0])}
-              />
-              <Paper
-                elevation={0}
-                sx={{
-                  p: 2,
-                  borderRadius: "12px",
-                  border: "1px solid #E5E7EB",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "space-between",
-                  "&:hover": { bgcolor: "#F9FAFB" },
-                }}
-              >
-                <div className="d-flex align-items-center gap-2">
-                  <BadgeOutlined sx={{ color: "#017E53", fontSize: 28 }} />
-                  <div>
-                    <Typography
-                      variant="subtitle2"
-                      sx={{ fontWeight: 700, fontSize: "12.5px" }}
-                    >
-                      ID Document
-                    </Typography>
-                    <Typography variant="caption" sx={{ color: "#9CA3AF" }}>
-                      {formData.id_card
-                        ? formData.id_card.name
-                        : "Upload ID card, Driver's License or Passport"}
-                    </Typography>
-                  </div>
-                </div>
-                <CloudUploadOutlined sx={{ color: "#9CA3AF" }} />
-              </Paper>
-            </label>
-          </div>
-
-          <div className="col-12 col-md-6">
-            <label style={{ width: "100%", cursor: "pointer" }}>
-              <input
-                type="file"
-                accept="image/*"
-                style={{ display: "none" }}
-                onChange={(e) => onChange("selfie", e.target.files[0])}
-              />
-              <Paper
-                elevation={0}
-                sx={{
-                  p: 2,
-                  borderRadius: "12px",
-                  border: "1px solid #E5E7EB",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "space-between",
-                  "&:hover": { bgcolor: "#F9FAFB" },
-                }}
-              >
-                <div className="d-flex align-items-center gap-2">
-                  <AccountCircleOutlined sx={{ color: "#017E53", fontSize: 28 }} />
-                  <div>
-                    <Typography
-                      variant="subtitle2"
-                      sx={{ fontWeight: 700, fontSize: "12.5px" }}
-                    >
-                      Selfie
-                    </Typography>
-                    <Typography variant="caption" sx={{ color: "#9CA3AF" }}>
-                      {formData.selfie
-                        ? formData.selfie.name
-                        : "Take a Clear Selfie"}
-                    </Typography>
-                  </div>
-                </div>
-                <CloudUploadOutlined sx={{ color: "#9CA3AF" }} />
-              </Paper>
-            </label>
-          </div>
-        </div>
-      </Paper>
+        </div>      
 
       {/* REVIEW CARD */}
       <Paper elevation={0} className="p-4 border mb-4" sx={{ borderRadius: "16px" }}>
@@ -353,7 +232,7 @@ const Step3ReviewSubmit = ({
           "&:hover": { bgcolor: "#016744" },
         }}
       >
-        Submit {typeConfig.title}
+        {typeConfig.buttonText}
       </Button>
 
       <div className="d-flex justify-content-center align-items-center gap-1 mt-3 text-muted">

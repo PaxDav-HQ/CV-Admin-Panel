@@ -18,12 +18,22 @@ import {
   ShieldOutlined,
   CalendarTodayOutlined,
   DriveFolderUploadOutlined,
-  PlayCircleOutlineOutlined,
   LightbulbOutlined,
   LockOutlined,
   Add,
 } from "@mui/icons-material";
 import { formatDisplayNumber } from "../utils/numberFormatters";
+
+// Duration mapped directly to integer days
+const DURATION_DAY_OPTIONS = [
+  { label: "1 Day", days: 1 },
+  { label: "1 Week", days: 7 },
+  { label: "2 Weeks", days: 14 },
+  { label: "1 Month", days: 30 },
+  { label: "3 Months", days: 90 },
+  { label: "6 Months", days: 180 },
+  { label: "1 Year", days: 365 },
+];
 
 const Step2PricingMedia = ({
   typeConfig,
@@ -136,16 +146,14 @@ const Step2PricingMedia = ({
             </label>
             <FormControl fullWidth size="small">
               <Select
-                value={formData.min_booking}
-                onChange={(e) => onChange("min_booking", e.target.value)}
+                value={Number(formData.min_booking) || 30}
+                onChange={(e) => onChange("min_booking", Number(e.target.value))}
               >
-                {["1 Day", "1 Week", "1 Month", "3 Months", "6 Months", "1 Year"].map(
-                  (d) => (
-                    <MenuItem key={d} value={d}>
-                      {d}
-                    </MenuItem>
-                  )
-                )}
+                {DURATION_DAY_OPTIONS.map((opt) => (
+                  <MenuItem key={opt.days} value={opt.days}>
+                    {opt.label} ({opt.days} {opt.days === 1 ? "day" : "days"})
+                  </MenuItem>
+                ))}
               </Select>
             </FormControl>
           </div>
@@ -303,36 +311,6 @@ const Step2PricingMedia = ({
             </Box>
           </label>
         </div>
-
-        <Paper
-          elevation={0}
-          sx={{
-            p: 2,
-            borderRadius: "12px",
-            border: "1px solid #E5E7EB",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "space-between",
-            cursor: "pointer",
-            "&:hover": { bgcolor: "#F9FAFB" },
-          }}
-        >
-          <div className="d-flex align-items-center gap-2">
-            <PlayCircleOutlineOutlined sx={{ color: "#017E53", fontSize: 24 }} />
-            <div>
-              <Typography
-                variant="body2"
-                sx={{ fontWeight: 700, color: "#111827", fontSize: "13px" }}
-              >
-                Add Video (Optional)
-              </Typography>
-              <Typography variant="caption" sx={{ color: "#6B7280" }}>
-                Showcase your listing with a short walkthrough video
-              </Typography>
-            </div>
-          </div>
-          <ArrowForward sx={{ color: "#9CA3AF", fontSize: 18 }} />
-        </Paper>
       </Paper>
 
       {/* TIPS CARD */}

@@ -18,11 +18,11 @@ import {
   LocationOnOutlined,
   NotesOutlined,
   MapOutlined,
-  ChatBubbleOutlineOutlined,
-  CalendarTodayOutlined,
+  ChatBubbleOutlineOutlined,  
   LockOutlined,
   StarBorderOutlined,
   DomainOutlined,
+  CategoryOutlined,
 } from "@mui/icons-material";
 
 import { STATE_COORDINATES, NIGERIAN_STATES } from "../constants/wizardConfig";
@@ -272,19 +272,19 @@ const Step1PropertyDetails = ({
         <div className="row g-3">
           <div className="col-12 col-md-6">
             <label className="form-label small fw-bold text-muted">
-              Year Established
+              Category
             </label>
             <FormControl fullWidth size="small">
               <Select
-                value={formData.year_established}
-                onChange={(e) => onChange("year_established", e.target.value)}
+                value={formData.category}
+                onChange={(e) => onChange("category", e.target.value)}
                 startAdornment={
                   <InputAdornment position="start">
-                    <CalendarTodayOutlined sx={{ color: "#9CA3AF", fontSize: 18 }} />
+                    <CategoryOutlined sx={{ color: "#9CA3AF", fontSize: 18 }} />
                   </InputAdornment>
                 }
               >
-                {["2026", "2025", "2024", "2023", "2022", "2020", "2018", "2015", "2010"].map((y) => (
+                {["Sale", "Rent", "Shortlet"].map((y) => (
                   <MenuItem key={y} value={y}>
                     {y}
                   </MenuItem>

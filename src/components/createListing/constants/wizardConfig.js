@@ -60,6 +60,7 @@ export const CONFIG_BY_TYPE = {
     pricingTypes: ["Per Bed", "Per Room", "Per Month", "Per Year"],
     defaultPriceType: "Per Month",
     hasHostelDetails: true,
+    buttonText: "Submit Hostel Listing",
   },
   property: {
     title: "List a Housing Property",
@@ -71,6 +72,7 @@ export const CONFIG_BY_TYPE = {
     icon: <HomeOutlined sx={{ color: "#9CA3AF", fontSize: 20 }} />,
     pricingTypes: ["For Sale", "For Rent", "Per Month", "Per Year"],
     defaultPriceType: "Per Year",
+    buttonText: "Submit Property Listing",
     hasPropertyDetails: false,
   },
   event_center: {
@@ -83,6 +85,7 @@ export const CONFIG_BY_TYPE = {
     icon: <CelebrationOutlined sx={{ color: "#9CA3AF", fontSize: 20 }} />,
     pricingTypes: ["Per Hour", "Per Day", "Per Event", "Negotiable"],
     defaultPriceType: "Per Hour",
+    buttonText: "Submit Event Center",
     hasEventDetails: true,
   },
   hotel: {
@@ -95,6 +98,7 @@ export const CONFIG_BY_TYPE = {
     icon: <HotelOutlined sx={{ color: "#9CA3AF", fontSize: 20 }} />,
     pricingTypes: ["Per Night", "Per Week", "Per Month"],
     defaultPriceType: "Per Night",
+    buttonText: "Submit Hotel Listing",
     hasHotelDetails: true,
   },
 };

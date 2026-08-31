@@ -17,6 +17,7 @@ const AllListings = () => {
 
   const {
     listings,
+    analytics,
     loading,
     page,
     setPage,
@@ -68,7 +69,7 @@ const AllListings = () => {
       <ListingsHeader onAddNew={() => navigate("/admin/listings/create")} />
 
       {/* 2. Overview Metrics Cards */}
-      <ListingsMetricsCards />
+      <ListingsMetricsCards cards={analytics?.cards} analytics={analytics} />
 
       {/* 3. Search & Filter Bar */}
       <ListingsFiltersBar
