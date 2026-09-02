@@ -302,6 +302,7 @@ const PropertyDetailsDrawer = ({
             <Button
               fullWidth
               variant="outlined"
+              disabled
               startIcon={<EditOutlined />}
               onClick={() => onAction("edit", listing)}
               sx={{
