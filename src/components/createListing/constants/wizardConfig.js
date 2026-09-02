@@ -70,7 +70,7 @@ export const CONFIG_BY_TYPE = {
     namePlaceholder: "e.g. Luxury 4 Bedroom Semi-Detached Duplex",
     category: "property",
     icon: <HomeOutlined sx={{ color: "#9CA3AF", fontSize: 20 }} />,
-    pricingTypes: ["For Sale", "For Rent", "Per Month", "Per Year"],
+    pricingTypes: ["Per Month", "Per Year"],
     defaultPriceType: "Per Year",
     buttonText: "Submit Property Listing",
     hasPropertyDetails: false,

@@ -11,16 +11,13 @@ import {
   FormControlLabel,
 } from "@mui/material";
 import {
-  Check,
   Send,
   LocationOnOutlined,
   EditOutlined,
-  BadgeOutlined,
-  AccountCircleOutlined,
   LockOutlined,
-  CloudUploadOutlined,
-  ShieldOutlined,
   DomainOutlined,
+  BedOutlined,
+  PersonOutlined,
 } from "@mui/icons-material";
 import { formatDisplayNumber } from "../utils/numberFormatters";
 
@@ -34,9 +31,29 @@ const Step3ReviewSubmit = ({
   onChange,
   onSubmit,
 }) => {
+  const isHotel = propertyType === "hotel";
+
+  // Calculate Hotel Price Range for header badge
+  const hotelPricing = useMemo(() => {
+    if (!isHotel || !formData.room_types || formData.room_types.length === 0) {
+      return null;
+    }
+    const prices = formData.room_types
+      .map((r) => Number(r.price_per_night) || 0)
+      .filter((p) => p > 0);
+
+    if (prices.length === 0) return "Price on request";
+    const min = Math.min(...prices);
+    const max = Math.max(...prices);
+
+    return min === max
+      ? `₦${formatDisplayNumber(min)} / Night`
+      : `₦${formatDisplayNumber(min)} – ₦${formatDisplayNumber(max)} / Night`;
+  }, [isHotel, formData.room_types]);
+
   const selectedAmenityNames = useMemo(() => {
-    return formData.amenities.map((id) => {
-      const match = availableAmenities.find(
+    return (formData.amenities || []).map((id) => {
+      const match = (availableAmenities || []).find(
         (item) =>
           String(item.id || item._id) === String(id) || item.name === id
       );
@@ -44,16 +61,26 @@ const Step3ReviewSubmit = ({
     });
   }, [formData.amenities, availableAmenities]);
 
+  const thumbnailSrc = useMemo(() => {
+    if (formData.main_photo) {
+      return URL.createObjectURL(formData.main_photo);
+    }
+    if (formData.images && formData.images.length > 0) {
+      return URL.createObjectURL(formData.images[0]);
+    }
+    return "https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?w=300";
+  }, [formData.main_photo, formData.images]);
+
   return (
     <Box>
-        <div className="mb-4">
-          <Typography variant="h5" sx={{ fontWeight: 800, color: "#111827" }}>
-            Review your listing & Submit
-          </Typography>
-          <Typography variant="body2" sx={{ color: "#6B7280", mt: 0.5 }}>
-            This is required to publish your listing on your platform.
-          </Typography>
-        </div>      
+      <div className="mb-4">
+        <Typography variant="h5" sx={{ fontWeight: 800, color: "#111827" }}>
+          Review your listing & Submit
+        </Typography>
+        <Typography variant="body2" sx={{ color: "#6B7280", mt: 0.5 }}>
+          This is required to publish your listing on your platform.
+        </Typography>
+      </div>
 
       {/* REVIEW CARD */}
       <Paper elevation={0} className="p-4 border mb-4" sx={{ borderRadius: "16px" }}>
@@ -80,11 +107,7 @@ const Step3ReviewSubmit = ({
         <div className="d-flex flex-column flex-sm-row gap-3 mb-3">
           <Box
             component="img"
-            src={
-              formData.images[0]
-                ? URL.createObjectURL(formData.images[0])
-                : "https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?w=300"
-            }
+            src={thumbnailSrc}
             alt="listing thumbnail"
             sx={{
               width: { xs: "100%", sm: 120 },
@@ -117,22 +140,28 @@ const Step3ReviewSubmit = ({
             <div className="d-flex flex-wrap gap-2 mt-2">
               {formData.capacity && (
                 <Chip
-                  label={`Capacity: ${formatDisplayNumber(
-                    formData.capacity
-                  )} People`}
+                  label={`Capacity: ${formatDisplayNumber(formData.capacity)} People`}
                   size="small"
                   sx={{ bgcolor: "#F3F4F6", fontWeight: 600, fontSize: "11px" }}
                 />
               )}
               <Chip
-                label={`Type: ${propertyType.toUpperCase()}`}
+                label={`Type: ${
+                  propertyType === "property"
+                    ? formData.type.toUpperCase()
+                    : propertyType.toUpperCase()
+                }`}
                 size="small"
                 sx={{ bgcolor: "#F3F4F6", fontWeight: 600, fontSize: "11px" }}
               />
+
+              {/* DYNAMIC PRICING CHIP */}
               <Chip
-                label={`₦${formatDisplayNumber(formData.total_price)} / ${
-                  formData.pricing_type
-                }`}
+                label={
+                  isHotel
+                    ? hotelPricing
+                    : `₦${formatDisplayNumber(formData.total_price)} / ${formData.pricing_type}`
+                }
                 size="small"
                 sx={{
                   bgcolor: "#ECFDF5",
@@ -144,6 +173,74 @@ const Step3ReviewSubmit = ({
             </div>
           </div>
         </div>
+
+        {/* HOTEL SPECIFIC: ROOM TYPES REVIEW LIST */}
+        {isHotel && formData.room_types && formData.room_types.length > 0 && (
+          <>
+            <Divider sx={{ my: 2 }} />
+            <Typography
+              variant="caption"
+              className="text-muted fw-bold d-block mb-2"
+              sx={{ letterSpacing: "0.5px" }}
+            >
+              ROOM TYPES & RATES ({formData.room_types.length})
+            </Typography>
+            <Box sx={{ display: "flex", flexDirection: "column", gap: 1.5, mb: 2 }}>
+              {formData.room_types.map((room, idx) => (
+                <Paper
+                  key={idx}
+                  elevation={0}
+                  sx={{
+                    p: 1.8,
+                    bgcolor: "#F9FAFB",
+                    border: "1px solid #E5E7EB",
+                    borderRadius: "10px",
+                    display: "flex",
+                    justifyContent: "space-between",
+                    alignItems: "center",
+                    flexWrap: "wrap",
+                    gap: 1.5,
+                  }}
+                >
+                  <Box>
+                    <Typography
+                      variant="subtitle2"
+                      sx={{ fontWeight: 700, color: "#111827", fontSize: "13px" }}
+                    >
+                      {room.name || `Room #${idx + 1}`}
+                    </Typography>
+                    <Box
+                      sx={{
+                        display: "flex",
+                        gap: 2,
+                        mt: 0.3,
+                        color: "#6B7280",
+                        fontSize: "11.5px",
+                      }}
+                    >
+                      <span className="d-flex align-items-center gap-1">
+                        <BedOutlined sx={{ fontSize: 14 }} /> {room.bed_type}
+                      </span>
+                      <span className="d-flex align-items-center gap-1">
+                        <PersonOutlined sx={{ fontSize: 14 }} />{" "}
+                        {room.max_occupancy || "2 Guests"}
+                      </span>
+                      {room.available_rooms && (
+                        <span>• {room.available_rooms} Available</span>
+                      )}
+                    </Box>
+                  </Box>
+                  <Typography
+                    variant="subtitle2"
+                    sx={{ fontWeight: 800, color: "#017E53", fontSize: "13px" }}
+                  >
+                    ₦{formatDisplayNumber(room.price_per_night)} / night
+                  </Typography>
+                </Paper>
+              ))}
+            </Box>
+          </>
+        )}
 
         <Divider sx={{ my: 2 }} />
 

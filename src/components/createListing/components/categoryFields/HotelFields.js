@@ -55,8 +55,8 @@ const HotelFields = ({ formData, onChange, onFormattedChange }) => {
             fullWidth
             size="small"
             placeholder="e.g. 5"
-            value={formatDisplayNumber(formData.number_of_floors)}
-            onChange={(e) => onFormattedChange("number_of_floors", e.target.value)}
+            value={formatDisplayNumber(formData.floor_numbers)}
+            onChange={(e) => onFormattedChange("floor_numbers", e.target.value)}
             InputProps={{
               startAdornment: (
                 <InputAdornment position="start">

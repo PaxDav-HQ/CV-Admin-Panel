@@ -12,7 +12,7 @@ import AllListings from './components/allListings/AllListings';
 import { createTheme, ThemeProvider } from "@mui/material/styles";
 import ListPropertyType from './components/ListPropertyType';
 import CreateListingWizard from './components/createListing/CreateListingWizard';
-
+import UnderConstruction from './pages/UnderConstruction'
 
 
 function App() {
@@ -42,8 +42,16 @@ function App() {
           <Route path='/admin/' element={<AdminDashboardMain />} />
           <Route path='/admin/users' element={<ManageUsers />} />
           <Route path='/admin/listings/all' element={<AllListings />} />
-          {/* <Route path='/admin/profile' element={<EditProfile />} /> */}
-          {/* <Route path='/admin/transactions' element={<TransactionHistory />} /> */}
+          <Route 
+            path="/admin/services" 
+            element={<UnderConstruction featureName="Service Management" />} 
+          />
+          <Route 
+            path="/admin/verification" 
+            element={<UnderConstruction featureName="Agent Verification" />} 
+          />
+          <Route path='/admin/transactions' element={<UnderConstruction featureName="Earnings and Transactions" />} />
+          <Route path='/admin/analytics' element={<UnderConstruction featureName="Analytics" />} />
         </Route>
         <Route path='/admin/property-types' element={<ListPropertyType />} />
         <Route path='/list-property/details' element={<CreateListingWizard />} />

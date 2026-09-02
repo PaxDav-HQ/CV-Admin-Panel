@@ -292,6 +292,55 @@ const Step1PropertyDetails = ({
               </Select>
             </FormControl>
           </div>
+          {propertyType == 'property' && (
+            <div className="col-12 col-md-6">
+              <label className="form-label small fw-bold text-muted">
+                Property Type
+              </label>
+              <FormControl fullWidth size="small">
+              <Select
+                value={formData.type}
+                onChange={(e) => onChange("type", e.target.value)}
+                startAdornment={
+                  <InputAdornment position="start">
+                    <CategoryOutlined sx={{ color: "#9CA3AF", fontSize: 18 }} />
+                  </InputAdornment>
+                }
+              >
+                {["Land", "Apartment"].map((y) => (
+                  <MenuItem key={y} value={y}>
+                    {y}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+            </div>
+          )}          
+
+          {formData.type == 'Land' && (
+            <div className="col-12 col-md-6">
+              <label className="form-label small fw-bold text-muted">
+                Land Size (in square meters)
+              </label>
+              <TextField
+                fullWidth
+                size="small"
+                type="number"
+                value={formData.land_size}
+                onChange={(e) => onFormattedChange("land_size", e.target.value)}
+                InputProps={{
+                  startAdornment: (
+                    <InputAdornment
+                      position="start"
+                      sx={{ alignSelf: "flex-start", mt: 1 }}
+                    >
+                      <NotesOutlined sx={{ color: "#9CA3AF", fontSize: 20 }} />
+                    </InputAdornment>
+                  ),
+                }}
+              />
+            </div>
+          )} 
 
           {typeConfig.hasHotelDetails && (
             <div className="col-12 col-md-6">

@@ -3,6 +3,7 @@ const initState = {
         avatar: '',
         firstname: '',
         lastname: '',
+        id: ''
     }
 }
 

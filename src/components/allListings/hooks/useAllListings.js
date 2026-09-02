@@ -103,5 +103,6 @@ export const useAllListings = (uri, token) => {
     setStatus,
     applyFilters,
     resetFilters,
+    fetchListings
   };
 };

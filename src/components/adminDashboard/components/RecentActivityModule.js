@@ -34,9 +34,9 @@ const RecentActivityModule = ({ recentActivity = [] }) => {
           <div className="text-center py-4 text-muted small">No recent activity.</div>
         )}
       </List>
-      <Button sx={{ textTransform: "none", color: "#16A34A", fontWeight: 700, mt: "auto", fontSize: "13px", alignSelf: "center" }}>
+      {/* <Button sx={{ textTransform: "none", color: "#16A34A", fontWeight: 700, mt: "auto", fontSize: "13px", alignSelf: "center" }}>
         View all activity &rarr;
-      </Button>
+      </Button> */}
     </Paper>
   );
 };

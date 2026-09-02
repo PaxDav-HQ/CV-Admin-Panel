@@ -17,7 +17,7 @@ const ListingsHeader = ({ onAddNew }) => {
         </Typography>
       </div>
       <Stack direction="row" spacing={1.5}>
-        <Button
+        {/* <Button
           variant="outlined"
           startIcon={<FileDownloadOutlined />}
           sx={{
@@ -30,7 +30,7 @@ const ListingsHeader = ({ onAddNew }) => {
           }}
         >
           Export Listings
-        </Button>
+        </Button> */}
         <Button
           variant="contained"
           startIcon={<Add />}

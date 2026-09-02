@@ -17,7 +17,7 @@ const AdminDashboardMain = () => {
   const token = sessionStorage.getItem("userToken");
   const [timeframe, setTimeframe] = useState("Monthly");
 
-  const { dashboardData, isLoading, handleApprovalAction } = useAdminDashboardData(uri, token, timeframe);
+  const { dashboardData, isLoading, fetchDashboardData } = useAdminDashboardData(uri, token, timeframe);
 
   if (isLoading || !dashboardData) {
     return (
@@ -67,9 +67,9 @@ const AdminDashboardMain = () => {
       <div className="row g-3">
         <div className="col-12 col-xl-6">
           <PendingApprovalsModule
-            pendingApprovals={pendingApprovals}
-            pendingCounts={pendingCounts}
-            onAction={handleApprovalAction}
+            pendingApprovals={dashboardData?.pendingApprovals}
+            pendingCounts={dashboardData?.pendingCounts}
+            onRefresh={fetchDashboardData} // Refetches metrics and updates list
           />
         </div>
         <div className="col-12 col-md-7 col-xl-3.5" style={{ flex: "1 0 28%" }}>

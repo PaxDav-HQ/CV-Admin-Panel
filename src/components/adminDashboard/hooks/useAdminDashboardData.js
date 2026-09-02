@@ -31,25 +31,6 @@ export const useAdminDashboardData = (uri, token, timeframe) => {
   useEffect(() => {
     fetchDashboardData();
   }, [fetchDashboardData]);
-
-  const handleApprovalAction = async (itemId, targetType, targetStatus) => {
-    try {
-      await axios.patch(
-        `${uri}admin/approvals/${targetType}/${itemId}`,
-        { status: targetStatus },
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
-
-      setDashboardData((prev) => ({
-        ...prev,
-        pendingApprovals: (prev?.pendingApprovals || []).filter(
-          (item) => item.id !== itemId
-        ),
-      }));
-    } catch (err) {
-      console.error(`Failed handling approval for ${targetType}:`, err);
-    }
-  };
-
-  return { dashboardData, isLoading, handleApprovalAction };
+  
+  return { dashboardData, isLoading, fetchDashboardData };
 };

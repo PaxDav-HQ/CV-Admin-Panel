@@ -29,7 +29,7 @@ const CreateListingWizard = () => {
   const [loading, setLoading] = useState(false);
   const [availableAmenities, setAvailableAmenities] = useState([]);
 
-  // Toast & Error State
+  // Toast State
   const [toast, setToast] = useState({
     open: false,
     message: "",
@@ -46,6 +46,8 @@ const CreateListingWizard = () => {
     latitude: STATE_COORDINATES["Lagos"].lat,
     longitude: STATE_COORDINATES["Lagos"].lon,
     category: "Sale",
+    type: "Apartment",
+    land_size: 0,
 
     capacity: "",
     room_type: "Shared Room",
@@ -62,25 +64,35 @@ const CreateListingWizard = () => {
     total_rooms: "",
     check_in_time: "14:00",
     check_out_time: "12:00",
-    number_of_floors: "",
+    floor_numbers: 0,
     bedrooms: "",
     bathrooms: "",
+
+    // Hotel Room Types
+    room_types: [
+      {
+        name: "Deluxe Room",
+        bed_type: "King Bed",
+        max_occupancy: "2 Guests",
+        price_per_night: "",
+        available_rooms: "",
+      },
+    ],
 
     pricing_type: typeConfig.defaultPriceType,
     total_price: "",
     security_deposit: "",
-    min_booking: 30, // 30 days numeric default
+    min_booking: propertyType === "hotel" ? 1 : 30,
     additional_charges: "",
     available_from: new Date().toISOString().split("T")[0],
     vacancy_status: "Available Now",
+    supportedEvent: ["wedding", "birthday"],
 
     amenities: [],
     main_photo: null,
     images: [],
     video_file: null,
 
-    id_card: null,
-    selfie: null,
     agree_terms: true,
   });
 
@@ -108,6 +120,38 @@ const CreateListingWizard = () => {
   const handleFormattedNumberChange = (field, rawValue) => {
     const cleanNumber = sanitizeNumericInput(rawValue);
     setFormData((prev) => ({ ...prev, [field]: cleanNumber }));
+  };
+
+  // Hotel Room Type Handlers
+  const handleAddRoomType = () => {
+    setFormData((prev) => ({
+      ...prev,
+      room_types: [
+        ...prev.room_types,
+        {
+          name: "",
+          bed_type: "King Bed",
+          max_occupancy: "2 Guests",
+          price_per_night: "",
+          available_rooms: "",
+        },
+      ],
+    }));
+  };
+
+  const handleRemoveRoomType = (index) => {
+    setFormData((prev) => ({
+      ...prev,
+      room_types: prev.room_types.filter((_, i) => i !== index),
+    }));
+  };
+
+  const handleUpdateRoomType = (index, field, value) => {
+    setFormData((prev) => {
+      const updated = [...prev.room_types];
+      updated[index] = { ...updated[index], [field]: value };
+      return { ...prev, room_types: updated };
+    });
   };
 
   const toggleAmenity = (amenityId) => {
@@ -148,7 +192,7 @@ const CreateListingWizard = () => {
   const handleCloseToast = (event, reason) => {
     if (reason === "clickaway") return;
     setToast((prev) => ({ ...prev, open: false }));
-  };
+  };  
 
   const handleSubmitListing = async () => {
     setLoading(true);
@@ -170,26 +214,68 @@ const CreateListingWizard = () => {
     postData.append("location", formData.location);
     postData.append("address", formData.address);
     postData.append("category", formData.category?.toLowerCase());
-    postData.append("type", propertyType);
-    postData.append("total_price", Number(formData.total_price) || 0);
-    postData.append("pricing_type", formData.pricing_type);
+    postData.append(
+      "type",
+      propertyType === "property" ? formData.type.toLowerCase() : propertyType
+    );
+
+    // Compute Base Price
+    const basePrice =
+      propertyType === "hotel"
+        ? Number(formData.room_types[0]?.price_per_night) || 0
+        : Number(formData.total_price) || 0;
+
+    postData.append("total_price", basePrice);
+    postData.append(
+      "pricing_type",
+      propertyType === "hotel" ? "night" : formData.pricing_type
+    );
+    postData.append("available_from", formData.available_from);
+
+    if (formData.type === "Land") {
+      postData.append("land_size", Number(formData.land_size) || 0);
+    }
+
+    if (propertyType === "event_center") {
+      postData.append("indoor", formData.indoor_outdoor === "Indoor" ? true : false);
+    }
+
+    if (formData.floor_numbers !== 0) {
+      postData.append("floor_numbers", Number(formData.floor_numbers));
+    }
+
     postData.append("latitude", Number(lat));
     postData.append("longitude", Number(lon));
-    postData.append(
-      "security_deposit",
-      Number(formData.security_deposit) || 0
-    );
-    postData.append("min_booking", Number(formData.min_booking) || 30);
+
+    if (propertyType === "event_center") {
+      formData.supportedEvent.forEach((evt) => postData.append("supported_events[]", evt));
+    }
+
+    // Security Deposit: Positive Integer (never zero)
+    const depositInt = parseInt(String(formData.security_deposit).replace(/[^0-9]/g, ""), 10);
+    if (!isNaN(depositInt) && depositInt > 0) {
+      postData.append("security_deposit", depositInt);
+    }
+
+    postData.append("min_booking", Number(formData.min_booking) || 1);
     postData.append("vacancy_status", formData.vacancy_status);
 
-    if (formData.capacity)
-      postData.append("capacity", Number(formData.capacity));
-    if (formData.number_of_rooms)
-      postData.append("number_of_rooms", Number(formData.number_of_rooms));
-    if (formData.bedrooms)
-      postData.append("bedrooms", Number(formData.bedrooms));
-    if (formData.bathrooms)
-      postData.append("bathrooms", Number(formData.bathrooms));
+    if (formData.capacity) postData.append("capacity", Number(formData.capacity));
+    if (formData.number_of_rooms) postData.append("number_of_rooms", Number(formData.number_of_rooms));
+    if (formData.bedrooms) postData.append("bedrooms", Number(formData.bedrooms));
+    if (formData.bathrooms) postData.append("bathrooms", Number(formData.bathrooms));
+
+    // Stringified Hotel Room Types
+    if (propertyType === "hotel" && formData.room_types?.length > 0) {
+      const sanitizedRooms = formData.room_types.map((room) => ({
+        name: room.name,
+        bed_type: room.bed_type,
+        max_occupancy: room.max_occupancy,
+        price_per_night: Number(room.price_per_night) || 0,
+        available_rooms: Number(room.available_rooms) || 1,
+      }));
+      postData.append("room_types", JSON.stringify(sanitizedRooms));
+    }
 
     formData.amenities.forEach((id) => postData.append("amenities[]", id));
 
@@ -202,9 +288,6 @@ const CreateListingWizard = () => {
     formData.images.forEach((imgFile) => {
       postData.append("images", imgFile);
     });
-
-    if (formData.id_card) postData.append("id_document", formData.id_card);
-    if (formData.selfie) postData.append("selfie", formData.selfie);
 
     try {
       await axios.post(`${uri}property/create`, postData, {
@@ -226,8 +309,10 @@ const CreateListingWizard = () => {
       console.error("Failed to submit property listing:", err.response);
       setLoading(false);
 
-      // Parse and extract the backend error message
-      const errorMsg = extractErrorMessage(err, "Failed to submit listing. Please verify your inputs and try again.");
+      const errorMsg = extractErrorMessage(
+        err,
+        "Failed to submit listing. Please verify your inputs and try again."
+      );
 
       setToast({
         open: true,
@@ -273,6 +358,9 @@ const CreateListingWizard = () => {
             onMainPhotoSelect={handleMainPhotoSelect}
             onGallerySelect={handleGalleryPhotosSelect}
             onRemoveGalleryImage={removeGalleryImage}
+            onAddRoomType={handleAddRoomType}
+            onRemoveRoomType={handleRemoveRoomType}
+            onUpdateRoomType={handleUpdateRoomType}
             onNext={() => setCurrentStep(3)}
           />
         )}
@@ -292,7 +380,6 @@ const CreateListingWizard = () => {
         )}
       </Container>
 
-      {/* POPUP TOASTER / ALERT */}
       <Snackbar
         open={toast.open}
         autoHideDuration={6000}

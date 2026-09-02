@@ -5,19 +5,19 @@ import {
   Typography,
   CircularProgress,
   Avatar,
-  IconButton,
+  Button,
   Select,
   MenuItem,
   Pagination,
   PaginationItem,
+  Tooltip,
 } from "@mui/material";
 import {
   LocationOnOutlined,
-  MoreHorizOutlined,
+  VisibilityOutlined,
   ArrowBack,
   ArrowForward,
 } from "@mui/icons-material";
-import { formatListingDateTime } from "../utils/listingFormatters";
 import {
   getTypeChip,
   getCategoryChip,
@@ -33,7 +33,7 @@ const ListingsDirectoryTable = ({
   setLimit,
   totalPages,
   totalEntries,
-  onOpenMenu,
+  onViewProperty,
 }) => {
   return (
     <Box sx={{ width: "100%", maxWidth: "100%", minWidth: 0 }}>
@@ -76,29 +76,28 @@ const ListingsDirectoryTable = ({
           ) : (
             <table
               className="table align-middle mb-0 text-nowrap"
-              style={{ minWidth: "1150px", width: "100%", margin: 0 }}
+              style={{ minWidth: "1080px", width: "100%", margin: 0 }}
             >
               <thead className="table-light">
                 <tr
                   className="text-muted fw-bold"
                   style={{ fontSize: "11px", letterSpacing: "0.5px" }}
                 >
-                  <th className="py-3 px-4" style={{ width: "25%" }}>Listing</th>
+                  <th className="py-3 px-4" style={{ width: "26%" }}>Listing</th>
                   <th className="py-3" style={{ width: "9%" }}>Type</th>
                   <th className="py-3" style={{ width: "10%" }}>Category</th>
-                  <th className="py-3" style={{ width: "18%" }}>Location</th>
+                  <th className="py-3" style={{ width: "20%" }}>Location</th>
                   <th className="py-3" style={{ width: "10%" }}>Price</th>
                   <th className="py-3" style={{ width: "12%" }}>Listed By</th>
                   <th className="py-3" style={{ width: "8%" }}>Status</th>
-                  <th className="py-3" style={{ width: "12%" }}>Listed Date</th>
-                  <th className="py-3 text-end px-4" style={{ width: "6%" }}>Actions</th>
+                  <th className="py-3 text-end px-4" style={{ width: "7%" }}>View</th>
                 </tr>
               </thead>
               <tbody>
                 {listings.length === 0 ? (
                   <tr>
                     <td
-                      colSpan="9"
+                      colSpan="8"
                       className="text-center py-5 text-muted fw-medium"
                     >
                       No matching records found.
@@ -106,10 +105,9 @@ const ListingsDirectoryTable = ({
                   </tr>
                 ) : (
                   listings.map((listing) => {
-                    const mainPhoto = listing.metadata?.main_photo || "";
-                    const price = listing.metadata?.price || 0;
-                    const { date: listedDate, time: listedTime } =
-                      formatListingDateTime(listing.created_at);
+                    const mainPhoto = listing.metadata?.main_photo || listing.image || "";
+                    const price = listing.metadata?.price || listing.total_price || 0;
+                    const fullAddress = listing.address || listing.location || "—";
 
                     return (
                       <tr key={listing.id} className="hover-row">
@@ -118,9 +116,10 @@ const ListingsDirectoryTable = ({
                             <Box
                               component="img"
                               src={mainPhoto}
+                              alt=""
                               sx={{
-                                width: 55,
-                                height: 38,
+                                width: 52,
+                                height: 36,
                                 borderRadius: "8px",
                                 objectFit: "cover",
                                 bgcolor: "#F3F4F6",
@@ -149,14 +148,35 @@ const ListingsDirectoryTable = ({
                         </td>
                         <td>{getTypeChip(listing.type || listing.listing_type)}</td>
                         <td>{getCategoryChip(listing.category)}</td>
-                        <td>
-                          <div className="d-flex align-items-center gap-1 small text-muted">
-                            <LocationOnOutlined
-                              sx={{ fontSize: 16, color: "#9CA3AF" }}
-                            />
-                            {listing.address}
-                          </div>
+                        
+                        {/* TRUNCATED ADDRESS COLUMN */}
+                        <td style={{ maxWidth: "220px" }}>
+                          <Tooltip title={fullAddress} placement="top" arrow>
+                            <Box
+                              sx={{
+                                display: "flex",
+                                alignItems: "center",
+                                gap: 0.8,
+                                color: "#4B5563",
+                                fontSize: "12.5px",
+                                overflow: "hidden",
+                              }}
+                            >
+                              <LocationOnOutlined sx={{ fontSize: 16, color: "#9CA3AF", flexShrink: 0 }} />
+                              <span
+                                style={{
+                                  whiteSpace: "nowrap",
+                                  overflow: "hidden",
+                                  textOverflow: "ellipsis",
+                                  display: "inline-block",
+                                }}
+                              >
+                                {fullAddress}
+                              </span>
+                            </Box>
+                          </Tooltip>
                         </td>
+
                         <td>
                           <Typography
                             variant="subtitle2"
@@ -167,8 +187,8 @@ const ListingsDirectoryTable = ({
                         </td>
                         <td>
                           <div className="d-flex align-items-center gap-2">
-                            <Avatar sx={{ width: 28, height: 28, fontSize: "11px" }}>
-                              {listing.owner_name?.charAt(0)}
+                            <Avatar sx={{ width: 26, height: 26, fontSize: "11px" }}>
+                              {listing.owner_name?.charAt(0) || "A"}
                             </Avatar>
                             <div>
                               <Typography
@@ -176,42 +196,38 @@ const ListingsDirectoryTable = ({
                                 sx={{
                                   fontWeight: 700,
                                   color: "#111827",
-                                  fontSize: "12.5px",
+                                  fontSize: "12px",
                                 }}
                               >
-                                {listing.owner_name}
-                              </Typography>
-                              <Typography
-                                variant="caption"
-                                className="text-muted"
-                                style={{ fontSize: "10.5px" }}
-                              >
-                                Agent
+                                {listing.owner_name || "Agent"}
                               </Typography>
                             </div>
                           </div>
                         </td>
                         <td>{getStatusChip(listing.status)}</td>
-                        <td>
-                          <div className="small">
-                            <div className="fw-semibold text-dark">
-                              {listedDate}
-                            </div>
-                            <div
-                              className="text-muted"
-                              style={{ fontSize: "11px" }}
-                            >
-                              {listedTime}
-                            </div>
-                          </div>
-                        </td>
                         <td className="text-end px-4">
-                          <IconButton
+                          <Button
                             size="small"
-                            onClick={(e) => onOpenMenu(e, listing)}
+                            variant="outlined"
+                            startIcon={<VisibilityOutlined sx={{ fontSize: 14 }} />}
+                            onClick={() => onViewProperty(listing)}
+                            sx={{
+                              textTransform: "none",
+                              fontSize: "11.5px",
+                              fontWeight: 700,
+                              py: 0.4,
+                              px: 1.5,
+                              borderRadius: "8px",
+                              borderColor: "#E5E7EB",
+                              color: "#374151",
+                              "&:hover": {
+                                bgcolor: "#F9FAFB",
+                                borderColor: "#D1D5DB",
+                              },
+                            }}
                           >
-                            <MoreHorizOutlined sx={{ fontSize: 18 }} />
-                          </IconButton>
+                            View
+                          </Button>
                         </td>
                       </tr>
                     );
@@ -222,6 +238,7 @@ const ListingsDirectoryTable = ({
           )}
         </Box>
 
+        {/* PAGINATION CONTROLS */}
         <div className="d-flex flex-column flex-sm-row justify-content-between align-items-center p-3 border-top bg-white gap-3">
           <div className="d-flex align-items-center gap-2">
             <Typography variant="caption" className="text-muted fw-bold">

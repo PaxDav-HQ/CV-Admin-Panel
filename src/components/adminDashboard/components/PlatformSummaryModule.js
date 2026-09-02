@@ -27,7 +27,7 @@ const PlatformSummaryModule = ({ platformSummary = {} }) => {
           ))}
         </Stack>
       </div>
-      <Button
+      {/* <Button
         variant="text"
         endIcon={<ChevronRightOutlined sx={{ fontSize: 14 }} />}
         sx={{
@@ -41,7 +41,7 @@ const PlatformSummaryModule = ({ platformSummary = {} }) => {
         }}
       >
         View full report
-      </Button>
+      </Button> */}
     </Paper>
   );
 };
