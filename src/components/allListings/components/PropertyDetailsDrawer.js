@@ -1,6 +1,6 @@
 import React from "react";
 import {
-  Drawer,
+  SwipeableDrawer,
   Box,
   Typography,
   IconButton,
@@ -24,9 +24,9 @@ import {
   PersonOffOutlined,
   DeleteOutlineOutlined,
 } from "@mui/icons-material";
+import { useSelector } from "react-redux";
 import { formatListingDateTime } from "../utils/listingFormatters";
 import { getTypeChip, getCategoryChip, getStatusChip } from "../utils/listingBadges";
-import { useSelector } from "react-redux";
 
 const PropertyDetailsDrawer = ({
   open,
@@ -35,47 +35,90 @@ const PropertyDetailsDrawer = ({
   onAction,
 }) => {
   const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down("md"));
+  // Strictly target mobile phones below 600px width
+  const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
   const currentUser = useSelector((state) => state.UserReducer?.userInfo);
 
   if (!listing) return null;
 
-  const mainPhoto = listing.metadata?.main_photo || listing.image || "https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?w=600";
+  const mainPhoto =
+    listing.metadata?.main_photo ||
+    listing.image ||
+    "https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?w=600";
   const galleryImages = listing.images || listing.metadata?.images || [];
   const price = listing.metadata?.price || listing.total_price || 0;
   const { date: listedDate, time: listedTime } = formatListingDateTime(listing.created_at);
 
-  const isPublicized = Boolean(listing.publicized);  
-  const isOwner = String(listing.owner_id) === String(currentUser?.id);
+  const isPublicized = Boolean(listing.publicized);
+
+  const currentUserId = currentUser?.id ?? currentUser?.userId ?? currentUser?._id;
+  const isOwner = String(listing.owner_id) === String(currentUserId);
   const canBanAgent = !isOwner;
 
   return (
-    <Drawer
+    <SwipeableDrawer
       anchor={isMobile ? "bottom" : "right"}
-      open={open}
+      open={Boolean(open)}
       onClose={onClose}
-      PaperProps={{
-        sx: {
-          width: isMobile ? "100%" : { sm: 480, md: 540 },
-          maxHeight: isMobile ? "90vh" : "100vh",
-          height: isMobile ? "90vh" : "100%",
+      onOpen={() => {}}
+      disableSwipeToOpen={true}
+      swipeAreaWidth={isMobile ? 30 : 0}
+      sx={{
+        zIndex: 1300,
+        "& .MuiDrawer-paper": {
+          boxSizing: "border-box",
+          // FIXED WIDTH ON DESKTOP - IMPOSSIBLE TO BE FULL WIDTH
+          width: isMobile ? "100vw !important" : "500px !important",
+          maxWidth: isMobile ? "100vw !important" : "500px !important",
+          minWidth: isMobile ? "auto" : "400px",
+          height: isMobile ? "85vh !important" : "100vh !important",
+          maxHeight: isMobile ? "85vh !important" : "100vh !important",
+          position: "fixed",
+          right: 0,
+          top: isMobile ? "auto" : 0,
+          bottom: 0,
+          bgcolor: "#FFFFFF",
+          boxShadow: "-8px 0 24px rgba(0,0,0,0.12)",
+          overflowY: "auto",
           borderTopLeftRadius: isMobile ? "20px" : 0,
           borderTopRightRadius: isMobile ? "20px" : 0,
-          boxShadow: "-8px 0 24px rgba(0,0,0,0.08)",
-          bgcolor: "#FFFFFF",
-          overflowY: "auto",
         },
       }}
     >
-      {/* MOBILE DRAG HANDLE */}
+      {/* MOBILE DRAG DOWN GESTURE HANDLE */}
       {isMobile && (
-        <Box sx={{ display: "flex", justifyContent: "center", pt: 1.5, pb: 0.5 }}>
-          <Box sx={{ width: 40, height: 4, bgcolor: "#D1D5DB", borderRadius: 2 }} />
+        <Box
+          sx={{
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+            py: 1.5,
+            cursor: "grab",
+            touchAction: "none",
+          }}
+        >
+          <Box
+            sx={{
+              width: 44,
+              height: 5,
+              bgcolor: "#CBD5E1",
+              borderRadius: "4px",
+            }}
+          />
         </Box>
       )}
 
       {/* HEADER */}
-      <Box sx={{ px: 3, py: 2, display: "flex", alignItems: "center", justifyContent: "space-between", borderBottom: "1px solid #F3F4F6" }}>
+      <Box
+        sx={{
+          px: 3,
+          py: 2,
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+          borderBottom: "1px solid #F3F4F6",
+        }}
+      >
         <div>
           <Typography variant="subtitle1" sx={{ fontWeight: 800, color: "#111827", fontSize: "16px" }}>
             Property Details
@@ -84,18 +127,22 @@ const PropertyDetailsDrawer = ({
             ID: LIS-{String(listing.id).padStart(5, "0")}
           </Typography>
         </div>
-        <IconButton onClick={onClose} size="small" sx={{ border: "1px solid #E5E7EB", borderRadius: "8px" }}>
+        <IconButton
+          onClick={onClose}
+          size="small"
+          sx={{ border: "1px solid #E5E7EB", borderRadius: "8px" }}
+        >
           <Close sx={{ fontSize: 18 }} />
         </IconButton>
       </Box>
 
       {/* CONTENT BODY */}
       <Box sx={{ p: 3 }}>
-        {/* MAIN IMAGE BANNER */}
+        {/* MAIN PHOTO BANNER */}
         <Box
           component="img"
           src={mainPhoto}
-          alt={listing.name}
+          alt={listing.name || "Property preview"}
           sx={{
             width: "100%",
             height: 220,
@@ -106,7 +153,7 @@ const PropertyDetailsDrawer = ({
           }}
         />
 
-        {/* GALLERY PREVIEW STRIP */}
+        {/* GALLERY STRIP */}
         {galleryImages.length > 0 && (
           <Box sx={{ display: "flex", gap: 1, overflowX: "auto", mb: 2.5, pb: 0.5 }}>
             {galleryImages.map((imgUrl, i) => (
@@ -114,7 +161,15 @@ const PropertyDetailsDrawer = ({
                 key={i}
                 component="img"
                 src={typeof imgUrl === "string" ? imgUrl : URL.createObjectURL(imgUrl)}
-                sx={{ width: 70, height: 50, borderRadius: "8px", objectFit: "cover", flexShrink: 0, border: "1px solid #E5E7EB" }}
+                alt="thumbnail"
+                sx={{
+                  width: 70,
+                  height: 50,
+                  borderRadius: "8px",
+                  objectFit: "cover",
+                  flexShrink: 0,
+                  border: "1px solid #E5E7EB",
+                }}
               />
             ))}
           </Box>
@@ -124,9 +179,8 @@ const PropertyDetailsDrawer = ({
         <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 2, mb: 1 }}>
           <div>
             <Typography variant="h6" sx={{ fontWeight: 800, color: "#111827", lineHeight: 1.2 }}>
-              {listing.name}
+              {listing.name || "Untitled Listing"}
             </Typography>
-            {/* FULL DETAILED ADDRESS */}
             <Typography
               variant="body2"
               sx={{
@@ -140,13 +194,13 @@ const PropertyDetailsDrawer = ({
               }}
             >
               <LocationOnOutlined sx={{ fontSize: 16, color: "#017E53", mt: 0.2, flexShrink: 0 }} />
-              <span>{listing.address || listing.location}</span>
+              <span>{listing.address || listing.location || "No address provided"}</span>
             </Typography>
           </div>
           <Box sx={{ flexShrink: 0 }}>{getStatusChip(listing.status)}</Box>
         </Box>
 
-        {/* PRICE TAG */}
+        {/* PRICING CARD */}
         <Paper elevation={0} sx={{ p: 2, bgcolor: "#ECFDF5", border: "1px solid #A7F3D0", borderRadius: "12px", my: 2 }}>
           <Typography variant="caption" sx={{ color: "#047857", fontWeight: 700, textTransform: "uppercase" }}>
             Total Price
@@ -159,18 +213,33 @@ const PropertyDetailsDrawer = ({
           </Typography>
         </Paper>
 
-        {/* SPECIFICATIONS GRID WITH CAPITALIZED LABELS */}
+        {/* SPECIFICATION CHIPS */}
         <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1, mb: 3 }}>
           {getTypeChip(listing.type || listing.listing_type)}
           {getCategoryChip(listing.category)}
           {listing.capacity && (
-            <Chip icon={<CropFreeOutlined sx={{ fontSize: "14px !important" }} />} label={`Capacity: ${listing.capacity} people`} size="small" sx={{ bgcolor: "#F3F4F6", fontWeight: 600, fontSize: "11px" }} />
+            <Chip
+              icon={<CropFreeOutlined sx={{ fontSize: "14px !important" }} />}
+              label={`Capacity: ${listing.capacity} people`}
+              size="small"
+              sx={{ bgcolor: "#F3F4F6", fontWeight: 600, fontSize: "11px" }}
+            />
           )}
           {listing.bedrooms && (
-            <Chip icon={<BedOutlined sx={{ fontSize: "14px !important" }} />} label={`${listing.bedrooms} Beds`} size="small" sx={{ bgcolor: "#F3F4F6", fontWeight: 600, fontSize: "11px" }} />
+            <Chip
+              icon={<BedOutlined sx={{ fontSize: "14px !important" }} />}
+              label={`${listing.bedrooms} Beds`}
+              size="small"
+              sx={{ bgcolor: "#F3F4F6", fontWeight: 600, fontSize: "11px" }}
+            />
           )}
           {listing.bathrooms && (
-            <Chip icon={<BathtubOutlined sx={{ fontSize: "14px !important" }} />} label={`${listing.bathrooms} Baths`} size="small" sx={{ bgcolor: "#F3F4F6", fontWeight: 600, fontSize: "11px" }} />
+            <Chip
+              icon={<BathtubOutlined sx={{ fontSize: "14px !important" }} />}
+              label={`${listing.bathrooms} Baths`}
+              size="small"
+              sx={{ bgcolor: "#F3F4F6", fontWeight: 600, fontSize: "11px" }}
+            />
           )}
         </Box>
 
@@ -180,11 +249,28 @@ const PropertyDetailsDrawer = ({
         <Typography variant="caption" sx={{ color: "#9CA3AF", fontWeight: 700, letterSpacing: "0.5px" }}>
           DESCRIPTION
         </Typography>
-        <Typography variant="body2" sx={{ color: "#4B5563", lineHeight: 1.6, mt: 0.5, mb: 3, fontSize: "13px" }}>
-          {listing.metadata?.description || listing.description || listing.about || "No full description provided."}
-        </Typography>
+        {/* NEW CODE: Parses and displays HTML without showing literal tags */}
+        <Box
+          sx={{
+            color: "#4B5563",
+            fontSize: "13px",
+            lineHeight: 1.6,
+            mt: 0.5,
+            mb: 3,
+            "& p": { m: 0, mb: 1 },
+            "& ul, & ol": { pl: 2.5, my: 1 },
+            "& strong": { color: "#111827" },
+          }}
+          dangerouslySetInnerHTML={{
+            __html:
+              listing.metadata?.description ||
+              listing.description ||
+              listing.about ||
+              "No full description provided.",
+          }}
+        />
 
-        {/* AGENT INFO */}
+        {/* LISTED BY AGENT */}
         <Typography variant="caption" sx={{ color: "#9CA3AF", fontWeight: 700, letterSpacing: "0.5px", display: "block", mb: 1 }}>
           LISTED BY
         </Typography>
@@ -195,7 +281,7 @@ const PropertyDetailsDrawer = ({
             </Avatar>
             <div>
               <Typography variant="subtitle2" sx={{ fontWeight: 700, color: "#111827", fontSize: "13px" }}>
-                {listing.owner_name || "Agent"}
+                {listing.owner_name || "Agent"} {isOwner && "(You)"}
               </Typography>
               <Typography variant="caption" sx={{ color: "#9CA3AF" }}>
                 {listing.owner_email || "No email available"} • Listed on {listedDate}
@@ -206,15 +292,14 @@ const PropertyDetailsDrawer = ({
 
         <Divider sx={{ my: 2 }} />
 
-        {/* ACTION PANEL */}
+        {/* ACTION BUTTONS */}
         <Typography variant="caption" sx={{ color: "#9CA3AF", fontWeight: 700, letterSpacing: "0.5px", display: "block", mb: 1.5 }}>
           MANAGE LISTING
         </Typography>
 
         <div className="row g-2 mb-2">
-          {/* Edit Property */}
-          <div className={`col-12 ${!isPublicized ? "col-sm-6" : "col-sm-12"}`}>
-            {/* <Button
+          <div className={`col-12 ${!isPublicized || canBanAgent ? "col-sm-6" : "col-sm-12"}`}>
+            <Button
               fullWidth
               variant="outlined"
               startIcon={<EditOutlined />}
@@ -230,10 +315,9 @@ const PropertyDetailsDrawer = ({
               }}
             >
               Edit Property
-            </Button> */}
+            </Button>
           </div>
 
-          {/* APPROVE & REJECT: ONLY VISIBLE WHEN PUBLICIZED IS FALSE */}
           {!isPublicized && (
             <>
               <div className="col-12 col-sm-6">
@@ -281,33 +365,31 @@ const PropertyDetailsDrawer = ({
             </>
           )}
 
-          {/* Ban Agent */}
           {canBanAgent && (
             <div className={`col-12 ${!isPublicized ? "col-sm-6" : "col-sm-12"}`}>
-            <Button
-              fullWidth
-              variant="outlined"
-              startIcon={<PersonOffOutlined />}
-              onClick={() => onAction("ban", listing)}
-              sx={{
-                borderRadius: "10px",
-                borderColor: "#FEE2E2",
-                bgcolor: "#FEF2F2",
-                color: "#EF4444",
-                textTransform: "none",
-                fontWeight: 700,
-                fontSize: "12.5px",
-                py: 1,
-                "&:hover": { bgcolor: "#FEE2E2", borderColor: "#DC2626" },
-              }}
-            >
-              Ban Agent
-            </Button>
-          </div>
+              <Button
+                fullWidth
+                variant="outlined"
+                startIcon={<PersonOffOutlined />}
+                onClick={() => onAction("ban", listing)}
+                sx={{
+                  borderRadius: "10px",
+                  borderColor: "#FEE2E2",
+                  bgcolor: "#FEF2F2",
+                  color: "#EF4444",
+                  textTransform: "none",
+                  fontWeight: 700,
+                  fontSize: "12.5px",
+                  py: 1,
+                  "&:hover": { bgcolor: "#FEE2E2", borderColor: "#DC2626" },
+                }}
+              >
+                Ban Agent
+              </Button>
+            </div>
           )}
         </div>
 
-        {/* Delete Property */}
         <Button
           fullWidth
           variant="contained"
@@ -328,7 +410,7 @@ const PropertyDetailsDrawer = ({
           Delete Listing
         </Button>
       </Box>
-    </Drawer>
+    </SwipeableDrawer>
   );
 };
 
