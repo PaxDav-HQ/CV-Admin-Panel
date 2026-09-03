@@ -126,7 +126,7 @@ const CreateListingWizard = () => {
 
     setLoading(true);
     axios
-      .get(`${uri}property/update/${listingId}`, {
+      .get(`${uri}property/${listingId}`, {
         headers: { Authorization: `Bearer ${token}` },
       })
       .then((res) => {
@@ -191,7 +191,7 @@ const CreateListingWizard = () => {
           latitude: item.latitude ?? (STATE_COORDINATES[item.location]?.lat || prev.latitude),
           longitude: item.longitude ?? (STATE_COORDINATES[item.location]?.lon || prev.longitude),
           category: item.category.charAt(0).toUpperCase() + item.category.slice(1),
-          type: item.type || "Apartment",
+          type: item.type == 'house' ? "Apartment" : item.type.charAt(0).toUpperCase() + item.type.slice(1),
           land_size: item.land_size || 0,
           capacity: item.capacity || "",
           number_of_rooms: item.number_of_rooms || "",
