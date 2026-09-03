@@ -55,6 +55,7 @@ function App() {
         </Route>
         <Route path='/admin/property-types' element={<ListPropertyType />} />
         <Route path='/list-property/details' element={<CreateListingWizard />} />
+        <Route element={<CreateListingWizard />} path="/listings/edit/:id" />
         <Route path='*' element={<NotFound />} />
       </Routes>
       </BrowserRouter>

@@ -23,8 +23,6 @@ import {
   Add,
   HotelOutlined,
   PersonOutlined,
-  PercentOutlined,
-  ReceiptLongOutlined,
   AddCircleOutlined,
 } from "@mui/icons-material";
 import { formatDisplayNumber } from "../utils/numberFormatters";
@@ -41,13 +39,23 @@ const DURATION_DAY_OPTIONS = [
 
 const BED_TYPES = ["Single Bed", "Double Bed", "Queen Bed", "King Bed", "Suite Bed"];
 
+const resolveImageSrc = (img) => {
+  if (!img) return "";
+  if (img instanceof File || img instanceof Blob) {
+    return URL.createObjectURL(img);
+  }
+  if (typeof img === "string") {
+    return img;
+  }
+  return img?.url || "";
+};
+
 const Step2PricingMedia = ({
   typeConfig,
   formData,
   propertyType,
   onChange,
   onFormattedChange,
-  onMainPhotoSelect,
   onGallerySelect,
   onRemoveGalleryImage,
   onNext,
@@ -84,7 +92,7 @@ const Step2PricingMedia = ({
             <Paper
               key={index}
               elevation={0}
-              className="p-3.5 border mb-3"
+              className="p-3 border mb-3"
               sx={{ borderRadius: "16px", bgcolor: "#FFFFFF" }}
             >
               <div className="d-flex justify-content-between align-items-center mb-3">
@@ -336,9 +344,7 @@ const Step2PricingMedia = ({
                 placeholder="e.g. 10,000"
                 value={formatDisplayNumber(formData.security_deposit)}
                 onChange={(e) => {
-                  // Strip out non-digits
                   const cleaned = e.target.value.replace(/[^0-9]/g, "");
-                  // Prevent leading zeros or zero value
                   const sanitized = cleaned ? String(parseInt(cleaned, 10)) : "";
                   onChange("security_deposit", sanitized === "0" ? "" : sanitized);
                 }}
@@ -429,31 +435,54 @@ const Step2PricingMedia = ({
         <div className="d-flex align-items-center gap-2 mb-1">
           <DriveFolderUploadOutlined sx={{ color: "#017E53", fontSize: 20 }} />
           <Typography variant="subtitle2" sx={{ fontWeight: 700, color: "#111827" }}>
-            Media
+            Media & Photos
           </Typography>
         </div>
         <Typography variant="caption" className="text-muted d-block mb-3">
-          Add photos of your {propertyType}. Minimum 5 photos recommended.
+          Add photos of your {propertyType}. The first photo will automatically serve as your listing's main cover photo.
         </Typography>
 
         <div className="d-flex flex-wrap gap-2 mb-3">
-          {formData.images.map((file, idx) => (
+          {(formData.images || []).map((file, idx) => (
             <Box
               key={idx}
               sx={{
                 position: "relative",
-                width: 85,
-                height: 75,
+                width: 95,
+                height: 85,
                 borderRadius: "10px",
                 overflow: "hidden",
-                border: "1px solid #E5E7EB",
+                border: idx === 0 ? "2px solid #017E53" : "1px solid #E5E7EB",
               }}
             >
               <img
-                src={URL.createObjectURL(file)}
-                alt="preview"
+                src={resolveImageSrc(file)}
+                alt={`preview-${idx}`}
                 style={{ width: "100%", height: "100%", objectFit: "cover" }}
               />
+
+              {/* COVER PHOTO LABEL */}
+              {idx === 0 && (
+                <Box
+                  sx={{
+                    position: "absolute",
+                    bottom: 0,
+                    left: 0,
+                    right: 0,
+                    bgcolor: "rgba(1, 126, 83, 0.9)",
+                    color: "#fff",
+                    fontSize: "9px",
+                    fontWeight: 800,
+                    textAlign: "center",
+                    py: 0.3,
+                    letterSpacing: "0.4px",
+                    textTransform: "uppercase",
+                  }}
+                >
+                  Cover
+                </Box>
+              )}
+
               <IconButton
                 size="small"
                 onClick={() => onRemoveGalleryImage(idx)}
@@ -464,6 +493,7 @@ const Step2PricingMedia = ({
                   bgcolor: "rgba(0,0,0,0.6)",
                   color: "#fff",
                   p: 0.2,
+                  "&:hover": { bgcolor: "rgba(220,38,38,0.85)" },
                 }}
               >
                 <DeleteOutlined sx={{ fontSize: 13 }} />
@@ -471,7 +501,7 @@ const Step2PricingMedia = ({
             </Box>
           ))}
 
-          <label style={{ cursor: "pointer" }}>
+          <label style={{ cursor: "pointer", margin: 0 }}>
             <input
               type="file"
               accept="image/*"
@@ -481,8 +511,8 @@ const Step2PricingMedia = ({
             />
             <Box
               sx={{
-                width: 85,
-                height: 75,
+                width: 95,
+                height: 85,
                 borderRadius: "10px",
                 border: "2px dashed #D1D5DB",
                 display: "flex",
@@ -496,7 +526,7 @@ const Step2PricingMedia = ({
             >
               <Add sx={{ fontSize: 22 }} />
               <Typography variant="caption" sx={{ fontSize: "10.5px", fontWeight: 700 }}>
-                Add More
+                Add Photos
               </Typography>
             </Box>
           </label>
@@ -536,7 +566,7 @@ const Step2PricingMedia = ({
             Tips
           </Typography>
           <Typography variant="caption" sx={{ color: "#047857", fontSize: "11.5px" }}>
-            Listings with clear room pricing and high-res photos get up to 3x more bookings.
+            Listings with clear pricing and high-res photos get up to 3x more bookings.
           </Typography>
         </div>
       </Paper>

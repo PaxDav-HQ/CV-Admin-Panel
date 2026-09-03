@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { useLocation, useNavigate } from "react-router-dom";
+import { useLocation, useNavigate, useParams } from "react-router-dom";
 import { useSelector } from "react-redux";
 import axios from "axios";
 import { Box, Container, Snackbar, Alert } from "@mui/material";
@@ -18,12 +18,19 @@ import Step3ReviewSubmit from "./components/Step3ReviewSubmit";
 const CreateListingWizard = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const uri = useSelector((state) => state.UriReducer.uri);
-  const token = sessionStorage.getItem("userToken");
+  const { id: paramId } = useParams();
 
   const searchParams = new URLSearchParams(location.search);
-  const propertyType = searchParams.get("type") || "hostel";
-  const typeConfig = CONFIG_BY_TYPE[propertyType] || CONFIG_BY_TYPE.hostel;
+  const listingId = paramId || searchParams.get("id");
+  const isEditMode = Boolean(listingId);
+
+  const uri = useSelector((state) => state.UriReducer?.uri);
+  const token = sessionStorage.getItem("userToken");
+
+  const [activePropertyType, setActivePropertyType] = useState(
+    searchParams.get("type") || "hostel"
+  );
+  const typeConfig = CONFIG_BY_TYPE[activePropertyType] || CONFIG_BY_TYPE.hostel;
 
   const [currentStep, setCurrentStep] = useState(1);
   const [loading, setLoading] = useState(false);
@@ -82,14 +89,13 @@ const CreateListingWizard = () => {
     pricing_type: typeConfig.defaultPriceType,
     total_price: "",
     security_deposit: "",
-    min_booking: propertyType === "hotel" ? 1 : 30,
+    min_booking: activePropertyType === "hotel" ? 1 : 30,
     additional_charges: "",
     available_from: new Date().toISOString().split("T")[0],
     vacancy_status: "Available Now",
     supportedEvent: ["wedding", "birthday"],
 
     amenities: [],
-    main_photo: null,
     images: [],
     video_file: null,
 
@@ -100,6 +106,7 @@ const CreateListingWizard = () => {
     if (!token) navigate("/login", { replace: true });
   }, [token, navigate]);
 
+  // Fetch Amenities
   useEffect(() => {
     axios
       .get(`${uri}property/amenities`, {
@@ -112,6 +119,124 @@ const CreateListingWizard = () => {
         console.error("Failed fetching amenities:", err);
       });
   }, [uri, token]);
+
+  // Fetch Listing Details in Edit Mode
+  useEffect(() => {
+    if (!isEditMode || !listingId || !token) return;
+
+    setLoading(true);
+    axios
+      .get(`${uri}property/update/${listingId}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      })
+      .then((res) => {
+        const item = res.data?.data || res.data;
+        if (!item) return;
+
+        const incomingType = item.listing_type || item.type || searchParams.get("type") || "property/update";
+        if (CONFIG_BY_TYPE[incomingType]) {
+          setActivePropertyType(incomingType);
+        }
+
+        let parsedRooms = [];
+        if (item.room_types) {
+          try {
+            parsedRooms =
+              typeof item.room_types === "string"
+                ? JSON.parse(item.room_types)
+                : item.room_types;
+          } catch (e) {
+            console.error("Failed parsing room_types:", e);
+          }
+        }
+
+        let parsedEvents = [];
+        if (item.supported_events) {
+          try {
+            parsedEvents =
+              typeof item.supported_events === "string"
+                ? JSON.parse(item.supported_events)
+                : item.supported_events;
+          } catch (e) {
+            console.error("Failed parsing supported_events:", e);
+          }
+        }
+
+        const mappedAmenities = Array.isArray(item.amenities)
+          ? item.amenities.map((a) => (typeof a === "object" ? a.id || a._id : a))
+          : [];
+
+        // Consolidate Images: Unify main cover photo into index 0 of images array
+        const rawImageList = Array.isArray(item.resources)
+          ? [...item.resources]          
+          : [];
+
+        const mainCover = item.main_photo
+        let consolidatedImages = [...rawImageList];
+
+        if (mainCover) {
+          consolidatedImages = consolidatedImages.filter(
+            (img) => (typeof img === "string" ? img : img?.url) !== mainCover
+          );
+          consolidatedImages.unshift(mainCover);
+        }
+
+        setFormData((prev) => ({
+          ...prev,
+          name: item.name || "",
+          short_description: item.about || item.short_description || "",
+          description: item.description || "",
+          location: item.location || "Lagos",
+          address: item.address || "",
+          latitude: item.latitude ?? (STATE_COORDINATES[item.location]?.lat || prev.latitude),
+          longitude: item.longitude ?? (STATE_COORDINATES[item.location]?.lon || prev.longitude),
+          category: item.category.charAt(0).toUpperCase() + item.category.slice(1),
+          type: item.type || "Apartment",
+          land_size: item.land_size || 0,
+          capacity: item.capacity || "",
+          number_of_rooms: item.number_of_rooms || "",
+          available_units: item.available_units || "",
+          hall_type: item.hall_type || prev.hall_type,
+          seating_arrangement: item.seating_arrangement || prev.seating_arrangement,
+          indoor_outdoor: item.indoor ? "Indoor" : item.indoor_outdoor || "Indoor",
+          parking_spaces: item.parking_spaces || "",
+          star_rating: item.star_rating || 4,
+          total_rooms: item.total_rooms || "",
+          check_in_time: item.check_in_time || "14:00",
+          check_out_time: item.check_out_time || "12:00",
+          floor_numbers: item.floor_numbers || 0,
+          bedrooms: item.bedrooms || "",
+          bathrooms: item.bathrooms || "",
+          gender_preference: item.gender_preference || "",
+          bathroom_type: item.bathroom_type || "",
+          furnishing_level: item.furnishing_level || "",
+
+          room_types: parsedRooms.length > 0 ? parsedRooms : prev.room_types,
+          pricing_type: item.pricing_type || prev.pricing_type,
+          total_price: item.total_price || "",
+          security_deposit: item.security_deposit || "",
+          min_booking: item.min_booking || (incomingType === "hotel" ? 1 : 30),
+          additional_charges: item.additional_charges || "",
+          available_from: item.available_from
+            ? new Date(item.available_from).toISOString().split("T")[0]
+            : prev.available_from,
+          vacancy_status: item.vacancy_status || "Available Now",
+          supportedEvent: parsedEvents.length > 0 ? parsedEvents : prev.supportedEvent,
+
+          amenities: mappedAmenities,
+          images: consolidatedImages,
+        }));
+      })
+      .catch((err) => {
+        console.error("Failed fetching listing to edit:", err);
+        setToast({
+          open: true,
+          message: extractErrorMessage(err, "Failed to load listing for edit."),
+          severity: "error",
+        });
+      })
+      .finally(() => setLoading(false));
+  }, [isEditMode, listingId, uri, token]);
 
   const handleInputChange = (field, value) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
@@ -166,12 +291,6 @@ const CreateListingWizard = () => {
     });
   };
 
-  const handleMainPhotoSelect = (e) => {
-    if (e.target.files && e.target.files[0]) {
-      setFormData((prev) => ({ ...prev, main_photo: e.target.files[0] }));
-    }
-  };
-
   const handleGalleryPhotosSelect = (e) => {
     if (e.target.files) {
       const filesArr = Array.from(e.target.files);
@@ -192,7 +311,7 @@ const CreateListingWizard = () => {
   const handleCloseToast = (event, reason) => {
     if (reason === "clickaway") return;
     setToast((prev) => ({ ...prev, open: false }));
-  };  
+  };
 
   const handleSubmitListing = async () => {
     setLoading(true);
@@ -216,19 +335,19 @@ const CreateListingWizard = () => {
     postData.append("category", formData.category?.toLowerCase());
     postData.append(
       "type",
-      propertyType === "property" ? formData.type.toLowerCase() : propertyType
+      activePropertyType === "property/update" ? formData.type.toLowerCase() : activePropertyType
     );
 
-    // Compute Base Price
+    // Base Price
     const basePrice =
-      propertyType === "hotel"
+      activePropertyType === "hotel"
         ? Number(formData.room_types[0]?.price_per_night) || 0
         : Number(formData.total_price) || 0;
 
     postData.append("total_price", basePrice);
     postData.append(
       "pricing_type",
-      propertyType === "hotel" ? "night" : formData.pricing_type
+      activePropertyType === "hotel" ? "night" : formData.pricing_type
     );
     postData.append("available_from", formData.available_from);
 
@@ -236,8 +355,9 @@ const CreateListingWizard = () => {
       postData.append("land_size", Number(formData.land_size) || 0);
     }
 
-    if (propertyType === "event_center") {
-      postData.append("indoor", formData.indoor_outdoor === "Indoor" ? true : false);
+    if (activePropertyType === "event_center") {
+      postData.append("indoor", formData.indoor_outdoor === "Indoor");
+      formData.supportedEvent.forEach((evt) => postData.append("supported_events[]", evt));
     }
 
     if (formData.floor_numbers !== 0) {
@@ -247,11 +367,7 @@ const CreateListingWizard = () => {
     postData.append("latitude", Number(lat));
     postData.append("longitude", Number(lon));
 
-    if (propertyType === "event_center") {
-      formData.supportedEvent.forEach((evt) => postData.append("supported_events[]", evt));
-    }
-
-    // Security Deposit: Positive Integer (never zero)
+    // Security Deposit: Strictly Positive Integer (never zero)
     const depositInt = parseInt(String(formData.security_deposit).replace(/[^0-9]/g, ""), 10);
     if (!isNaN(depositInt) && depositInt > 0) {
       postData.append("security_deposit", depositInt);
@@ -265,8 +381,8 @@ const CreateListingWizard = () => {
     if (formData.bedrooms) postData.append("bedrooms", Number(formData.bedrooms));
     if (formData.bathrooms) postData.append("bathrooms", Number(formData.bathrooms));
 
-    // Stringified Hotel Room Types
-    if (propertyType === "hotel" && formData.room_types?.length > 0) {
+    // Stringified Room Types
+    if (activePropertyType === "hotel" && formData.room_types?.length > 0) {
       const sanitizedRooms = formData.room_types.map((room) => ({
         name: room.name,
         bed_type: room.bed_type,
@@ -279,27 +395,30 @@ const CreateListingWizard = () => {
 
     formData.amenities.forEach((id) => postData.append("amenities[]", id));
 
-    if (formData.main_photo) {
-      postData.append("main_photo", formData.main_photo);
-    } else if (formData.images.length > 0) {
-      postData.append("main_photo", formData.images[0]);
-    }
-
+    // Upload newly added files only
     formData.images.forEach((imgFile) => {
-      postData.append("images", imgFile);
+      if (imgFile instanceof File) {
+        postData.append("images", imgFile);
+      }
     });
 
     try {
-      await axios.post(`${uri}property/create`, postData, {
+      const endpoint = isEditMode
+        ? `${uri}property/update/${listingId}`
+        : `${uri}property/create`;
+      const method = isEditMode ? "patch" : "post";
+
+      await axios[method](endpoint, postData, {
         headers: {
           "Content-Type": "multipart/form-data",
           Authorization: `Bearer ${token}`,
         },
       });
+
       setLoading(false);
       setToast({
         open: true,
-        message: "Listing published successfully!",
+        message: isEditMode ? "Listing updated successfully!" : "Listing published successfully!",
         severity: "success",
       });
       setTimeout(() => {
@@ -311,7 +430,9 @@ const CreateListingWizard = () => {
 
       const errorMsg = extractErrorMessage(
         err,
-        "Failed to submit listing. Please verify your inputs and try again."
+        isEditMode
+          ? "Failed to update listing. Please verify your inputs and try again."
+          : "Failed to submit listing. Please verify your inputs and try again."
       );
 
       setToast({
@@ -325,7 +446,7 @@ const CreateListingWizard = () => {
   return (
     <Box sx={{ bgcolor: "#FFFFFF", minHeight: "100vh", pb: 8 }}>
       <WizardHeader
-        title={typeConfig.title}
+        title={isEditMode ? `Edit ${formData.name || "Listing"}` : typeConfig.title}
         currentStep={currentStep}
         onBack={() =>
           currentStep > 1 ? setCurrentStep((s) => s - 1) : navigate(-1)
@@ -339,7 +460,7 @@ const CreateListingWizard = () => {
           <Step1PropertyDetails
             typeConfig={typeConfig}
             formData={formData}
-            propertyType={propertyType}
+            propertyType={activePropertyType}
             availableAmenities={availableAmenities}
             onChange={handleInputChange}
             onFormattedChange={handleFormattedNumberChange}
@@ -352,10 +473,9 @@ const CreateListingWizard = () => {
           <Step2PricingMedia
             typeConfig={typeConfig}
             formData={formData}
-            propertyType={propertyType}
+            propertyType={activePropertyType}
             onChange={handleInputChange}
             onFormattedChange={handleFormattedNumberChange}
-            onMainPhotoSelect={handleMainPhotoSelect}
             onGallerySelect={handleGalleryPhotosSelect}
             onRemoveGalleryImage={removeGalleryImage}
             onAddRoomType={handleAddRoomType}
@@ -367,9 +487,12 @@ const CreateListingWizard = () => {
 
         {currentStep === 3 && (
           <Step3ReviewSubmit
-            typeConfig={typeConfig}
+            typeConfig={{
+              ...typeConfig,
+              buttonText: isEditMode ? "Update Listing" : typeConfig.buttonText,
+            }}
             formData={formData}
-            propertyType={propertyType}
+            propertyType={activePropertyType}
             availableAmenities={availableAmenities}
             loading={loading}
             errorMessage={toast.severity === "error" && toast.open ? toast.message : ""}

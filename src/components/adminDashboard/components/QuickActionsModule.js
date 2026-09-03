@@ -9,13 +9,15 @@ import {
   AssessmentOutlined,
   ChevronRightOutlined,
 } from "@mui/icons-material";
+import { useNavigate } from "react-router-dom";
 
 const QuickActionsModule = ({ pendingVerificationsCount = 1 }) => {
+  const navigate = useNavigate();
   const actions = [
-    { label: "Add Property / Listing", icon: <AddHomeWorkOutlined sx={{ fontSize: 18, color: "#6B7280" }} /> },
-    { label: "Add Services", icon: <HandymanOutlined sx={{ fontSize: 18, color: "#6B7280" }} /> },
-    { label: "Send Announcement", icon: <CampaignOutlined sx={{ fontSize: 18, color: "#6B7280" }} /> },
-    { label: "Manage Users", icon: <ManageAccountsOutlined sx={{ fontSize: 18, color: "#6B7280" }} /> },
+    { label: "Add Property / Listing", icon: <AddHomeWorkOutlined sx={{ fontSize: 18, color: "#6B7280" }} />, route: "/admin/property-types" },
+    { label: "Add Services", icon: <HandymanOutlined sx={{ fontSize: 18, color: "#6B7280" }} />, route: "/admin/services" },
+    { label: "Send Announcement", icon: <CampaignOutlined sx={{ fontSize: 18, color: "#6B7280" }} />, route: "/admin/announcements" },
+    { label: "Manage Users", icon: <ManageAccountsOutlined sx={{ fontSize: 18, color: "#6B7280" }} />, route: "/admin/users" },
     {
       label: "Approve Verifications",
       icon: <VerifiedUserOutlined sx={{ fontSize: 18, color: "#6B7280" }} />,
@@ -33,6 +35,7 @@ const QuickActionsModule = ({ pendingVerificationsCount = 1 }) => {
         {actions.map((act, i) => (
           <Button
             key={i}
+            onClick={() => navigate(act.route)}
             fullWidth
             variant="outlined"
             startIcon={act.icon}

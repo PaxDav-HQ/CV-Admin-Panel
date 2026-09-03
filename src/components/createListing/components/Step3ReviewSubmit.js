@@ -21,6 +21,15 @@ import {
 } from "@mui/icons-material";
 import { formatDisplayNumber } from "../utils/numberFormatters";
 
+const resolveImageSrc = (img) => {
+  if (!img) return "https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?w=300";
+  if (img instanceof File || img instanceof Blob) {
+    return URL.createObjectURL(img);
+  }
+  if (typeof img === "string") return img;
+  return img?.url || "https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?w=300";
+};
+
 const Step3ReviewSubmit = ({
   typeConfig,
   formData,
@@ -61,15 +70,13 @@ const Step3ReviewSubmit = ({
     });
   }, [formData.amenities, availableAmenities]);
 
-  const thumbnailSrc = useMemo(() => {
-    if (formData.main_photo) {
-      return URL.createObjectURL(formData.main_photo);
-    }
+  // Primary cover image is always the first image in formData.images
+  const coverImage = useMemo(() => {
     if (formData.images && formData.images.length > 0) {
-      return URL.createObjectURL(formData.images[0]);
+      return formData.images[0];
     }
-    return "https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?w=300";
-  }, [formData.main_photo, formData.images]);
+    return formData.main_photo || null;
+  }, [formData.images, formData.main_photo]);
 
   return (
     <Box>
@@ -107,13 +114,14 @@ const Step3ReviewSubmit = ({
         <div className="d-flex flex-column flex-sm-row gap-3 mb-3">
           <Box
             component="img"
-            src={thumbnailSrc}
+            src={resolveImageSrc(coverImage)}
             alt="listing thumbnail"
             sx={{
               width: { xs: "100%", sm: 120 },
               height: 90,
               borderRadius: "10px",
               objectFit: "cover",
+              bgcolor: "#F3F4F6",
             }}
           />
           <div>
@@ -148,8 +156,8 @@ const Step3ReviewSubmit = ({
               <Chip
                 label={`Type: ${
                   propertyType === "property"
-                    ? formData.type.toUpperCase()
-                    : propertyType.toUpperCase()
+                    ? (formData.type || "").toUpperCase()
+                    : (propertyType || "").toUpperCase()
                 }`}
                 size="small"
                 sx={{ bgcolor: "#F3F4F6", fontWeight: 600, fontSize: "11px" }}
@@ -290,7 +298,7 @@ const Step3ReviewSubmit = ({
       <FormControlLabel
         control={
           <Checkbox
-            checked={formData.agree_terms}
+            checked={Boolean(formData.agree_terms)}
             onChange={(e) => onChange("agree_terms", e.target.checked)}
             sx={{
               color: "#017E53",
@@ -329,7 +337,7 @@ const Step3ReviewSubmit = ({
           "&:hover": { bgcolor: "#016744" },
         }}
       >
-        {typeConfig.buttonText}
+        {typeConfig.buttonText || "Submit Listing"}
       </Button>
 
       <div className="d-flex justify-content-center align-items-center gap-1 mt-3 text-muted">

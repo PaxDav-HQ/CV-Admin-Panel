@@ -40,7 +40,7 @@ const HostelFields = ({ formData, onChange, onFormattedChange }) => {
             }}
           />
         </div>
-        <div className="col-12 col-md-4">
+        {/* <div className="col-12 col-md-4">
           <label className="form-label small fw-bold text-muted">Room Type *</label>
           <FormControl fullWidth size="small">
             <Select
@@ -64,15 +64,14 @@ const HostelFields = ({ formData, onChange, onFormattedChange }) => {
               ))}
             </Select>
           </FormControl>
-        </div>
+        </div> */}
         <div className="col-12 col-md-4">
           <label className="form-label small fw-bold text-muted">
             Gender Preference *
           </label>
           <div className="d-flex gap-1">
             {["Male", "Female", "Mixed"].map((g) => (
-              <Button
-                disabled
+              <Button                
                 key={g}
                 size="small"
                 onClick={() => onChange("gender_preference", g)}
@@ -83,11 +82,11 @@ const HostelFields = ({ formData, onChange, onFormattedChange }) => {
                   fontWeight: 700,
                   borderRadius: "8px",
                   bgcolor:
-                    formData.gender_preference === g ? "#ECFDF5" : "#F9FAFB",
+                    formData.gender_preference.toLowerCase() === g.toLowerCase() ? "#ECFDF5" : "#F9FAFB",
                   color:
-                    formData.gender_preference === g ? "#017E53" : "#6B7280",
+                    formData.gender_preference.toLowerCase() === g.toLowerCase() ? "#017E53" : "#6B7280",
                   border:
-                    formData.gender_preference === g
+                    formData.gender_preference.toLowerCase() === g.toLowerCase()
                       ? "1.5px solid #017E53"
                       : "1px solid #E5E7EB",
                 }}
@@ -104,7 +103,7 @@ const HostelFields = ({ formData, onChange, onFormattedChange }) => {
           <label className="form-label small fw-bold text-muted">
             Bathroom Type *
           </label>
-          <FormControl fullWidth size="small" disabled>
+          <FormControl fullWidth size="small">
             <Select
               value={formData.bathroom_type}
               onChange={(e) => onChange("bathroom_type", e.target.value)}
@@ -126,7 +125,7 @@ const HostelFields = ({ formData, onChange, onFormattedChange }) => {
           <label className="form-label small fw-bold text-muted">
             Furnishing Level *
           </label>
-          <FormControl fullWidth size="small" disabled>
+          <FormControl fullWidth size="small">
             <Select
               value={formData.furnishing_level}
               onChange={(e) => onChange("furnishing_level", e.target.value)}

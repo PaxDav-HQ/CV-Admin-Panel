@@ -301,8 +301,7 @@ const PropertyDetailsDrawer = ({
           <div className={`col-12 ${!isPublicized || canBanAgent ? "col-sm-6" : "col-sm-12"}`}>
             <Button
               fullWidth
-              variant="outlined"
-              disabled
+              variant="outlined"              
               startIcon={<EditOutlined />}
               onClick={() => onAction("edit", listing)}
               sx={{
@@ -319,7 +318,7 @@ const PropertyDetailsDrawer = ({
             </Button>
           </div>
 
-          {!isPublicized && (
+          {!isPublicized && canBanAgent && (
             <>
               <div className="col-12 col-sm-6">
                 <Button

@@ -119,12 +119,14 @@ const ManageUsers = () => {
       );
     } else if (
       confirmModal.actionType === "suspend" ||
-      confirmModal.actionType === "unsuspend" ||
-      confirmModal.actionType === "verify"
+      confirmModal.actionType === "unsuspend"      
     ) {
       requestPromise = axios.patch(
-        `${uri}admin/admin/agents/${selectedUser.id}/status`,
-        {},
+        `${uri}admin/account/suspend/`,
+        {
+          accountId: selectedUser.id,
+          suspended: confirmModal.actionType === "suspend" ? true : false,
+        },
         config
       );
     }

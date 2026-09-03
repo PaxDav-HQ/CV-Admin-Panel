@@ -72,7 +72,7 @@ const AllListings = () => {
 
   const handleTriggerAction = (actionType, listing) => {
     if (actionType === "edit") {
-      navigate(`/admin/listings/edit/${listing.id}`);
+      navigate(`/listings/edit/${listing.id}?type=${listing.listing_type}`);
       return;
     }
 
