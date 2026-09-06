@@ -93,7 +93,7 @@ const CreateListingWizard = () => {
     additional_charges: "",
     available_from: new Date().toISOString().split("T")[0],
     vacancy_status: "Available Now",
-    supportedEvent: ["wedding", "birthday"],
+    supportedEvent: [],
 
     amenities: [],
     images: [],
@@ -148,19 +148,7 @@ const CreateListingWizard = () => {
           } catch (e) {
             console.error("Failed parsing room_types:", e);
           }
-        }
-
-        let parsedEvents = [];
-        if (item.supported_events) {
-          try {
-            parsedEvents =
-              typeof item.supported_events === "string"
-                ? JSON.parse(item.supported_events)
-                : item.supported_events;
-          } catch (e) {
-            console.error("Failed parsing supported_events:", e);
-          }
-        }
+        }        
 
         const mappedAmenities = Array.isArray(item.amenities)
           ? item.amenities.map((a) => (typeof a === "object" ? a.id || a._id : a))
@@ -194,9 +182,9 @@ const CreateListingWizard = () => {
           type: item.type == 'house' ? "Apartment" : item.type.charAt(0).toUpperCase() + item.type.slice(1),
           land_size: item.land_size || 0,
           capacity: item.capacity || "",
-          number_of_rooms: item.number_of_rooms || "",
+          number_of_rooms: item.number_of_rooms || 0,
           available_units: item.available_units || "",
-          hall_type: item.hall_type || prev.hall_type,
+          hall_type: item.hall_type,
           seating_arrangement: item.seating_arrangement || prev.seating_arrangement,
           indoor_outdoor: item.indoor ? "Indoor" : item.indoor_outdoor || "Indoor",
           parking_spaces: item.parking_spaces || "",
@@ -221,7 +209,7 @@ const CreateListingWizard = () => {
             ? new Date(item.available_from).toISOString().split("T")[0]
             : prev.available_from,
           vacancy_status: item.vacancy_status || "Available Now",
-          supportedEvent: parsedEvents.length > 0 ? parsedEvents : prev.supportedEvent,
+          supportedEvent: JSON.parse(item.supported_events),
 
           amenities: mappedAmenities,
           images: consolidatedImages,
@@ -335,7 +323,7 @@ const CreateListingWizard = () => {
     postData.append("category", formData.category?.toLowerCase());
     postData.append(
       "type",
-      activePropertyType === "property/update" ? formData.type.toLowerCase() : activePropertyType
+      activePropertyType == "property" ? formData.type.toLowerCase() : activePropertyType
     );
 
     // Base Price
@@ -356,8 +344,19 @@ const CreateListingWizard = () => {
     }
 
     if (activePropertyType === "event_center") {
+      console.log(formData.supportedEvent, "supportedEvent");
       postData.append("indoor", formData.indoor_outdoor === "Indoor");
       formData.supportedEvent.forEach((evt) => postData.append("supported_events[]", evt));
+      postData.append("hall_type", formData.hall_type);
+      postData.append("seating_arrangement", formData.seating_arrangement);
+      postData.append("parking_spaces", Number(formData.parking_spaces) || 0);
+
+    }
+    if (activePropertyType === "hostel") {
+      postData.append("gender_preference", formData.gender_preference.toLowerCase());
+      postData.append("bathroom_type", formData.bathroom_type);
+      postData.append("furnishing_level", formData.furnishing_level);
+      postData.append("available_units", Number(formData.available_units) || 0);      
     }
 
     if (formData.floor_numbers !== 0) {
