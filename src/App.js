@@ -14,6 +14,7 @@ import ListPropertyType from './components/ListPropertyType';
 import CreateListingWizard from './components/createListing/CreateListingWizard';
 import ManageVerifications from './components/verifications/ManageVerifications';
 import ManagePayouts from './components/payouts/ManagePayouts';
+import PerformanceOverview from './components/analytics/PerformanceOverview';
 import UnderConstruction from './pages/UnderConstruction'
 
 
@@ -52,8 +53,8 @@ function App() {
             path="/admin/verification" 
             element={<ManageVerifications />} 
           />
-          <Route path='/admin/transactions' element={<ManagePayouts />} />
-          <Route path='/admin/analytics' element={<UnderConstruction featureName="Analytics" />} />
+          <Route path='/admin/payouts' element={<ManagePayouts />} />
+          <Route path='/admin/analytics' element={<PerformanceOverview />} />
         </Route>
         <Route path='/admin/property-types' element={<ListPropertyType />} />
         <Route path='/list-property/details' element={<CreateListingWizard />} />

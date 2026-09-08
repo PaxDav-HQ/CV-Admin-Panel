@@ -160,18 +160,30 @@ const AllListings = () => {
 };
 
   return (
+    // <Box
+    //   sx={{
+    //     backgroundColor: "#F9FAFB",
+    //     minHeight: "100vh",
+    //     width: "100%",
+    //     maxWidth: "100vw",
+    //     overflowX: "hidden",
+    //     py: 4,
+    //     px: { xs: 1.5, sm: 3, md: 4 },
+    //     boxSizing: "border-box",
+    //   }}
+    // >
+
     <Box
-      sx={{
-        backgroundColor: "#F9FAFB",
-        minHeight: "100vh",
-        width: "100%",
-        maxWidth: "100vw",
-        overflowX: "hidden",
-        py: 4,
-        px: { xs: 1.5, sm: 3, md: 4 },
-        boxSizing: "border-box",
-      }}
-    >
+            sx={{
+            p: { xs: 0, sm: 2, md: 3 },
+            bgcolor: "#F9FAFB",
+            minHeight: "100vh",
+            width: "100%",
+            maxWidth: "100vw",
+            overflowX: "hidden", // Prevents entire page from sliding horizontally
+            boxSizing: "border-box",
+            }}
+        >
       <ListingsHeader onAddNew={() => navigate("/admin/property-types")} />
       <ListingsMetricsCards cards={analytics?.cards} analytics={analytics} />
       <ListingsFiltersBar

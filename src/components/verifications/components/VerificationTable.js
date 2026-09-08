@@ -22,7 +22,7 @@ import {
 import { FilterList } from "@mui/icons-material";
 
 const VerificationTable = ({
-  data,
+  data = [],
   loading,
   selectedId,
   isDrawerOpen,
@@ -37,13 +37,13 @@ const VerificationTable = ({
   limit,
   onLimitChange,
 }) => {
-  // Compute the current range: "Showing X - Y of Z"
-  const totalItems = pagination?.totalItems || 0;
+  const totalItems = pagination?.totalItems || data.length || 0;
   const currentPage = pagination?.currentPage || 1;
   const itemsPerPage = limit || pagination?.itemsPerPage || 10;
 
   const from = totalItems === 0 ? 0 : (currentPage - 1) * itemsPerPage + 1;
   const to = Math.min(currentPage * itemsPerPage, totalItems);
+  const totalPages = pagination?.totalPages || Math.ceil(totalItems / itemsPerPage) || 1;
 
   return (
     <Paper
@@ -52,16 +52,19 @@ const VerificationTable = ({
         borderRadius: "16px",
         border: "1px solid #E5E7EB",
         bgcolor: "#FFFFFF",
-        overflow: "hidden",
+        width: "100%",
+        maxWidth: "100%",
+        boxSizing: "border-box",
+        overflow: "hidden", // Prevents bleed out to page
       }}
     >
-      {/* Table Toolbar */}
+      {/* 1. Filter Toolbar (Responsive wrap) */}
       <Box
         sx={{
-          p: 2,
+          p: { xs: 1.5, sm: 2 },
           display: "flex",
           alignItems: "center",
-          gap: 2,
+          gap: 1.5,
           flexWrap: "wrap",
           borderBottom: "1px solid #F3F4F6",
         }}
@@ -73,11 +76,11 @@ const VerificationTable = ({
           </Typography>
         </Box>
 
-        <FormControl size="small" sx={{ minWidth: 140 }}>
+        <FormControl size="small" sx={{ minWidth: { xs: "100%", sm: 130 }, flex: { xs: 1, sm: "unset" } }}>
           <Select
             value={userTypeFilter}
             onChange={(e) => setUserTypeFilter(e.target.value)}
-            sx={{ borderRadius: "10px", fontSize: "13px" }}
+            sx={{ borderRadius: "10px", fontSize: "12.5px" }}
           >
             <MenuItem value="all">All User Types</MenuItem>
             <MenuItem value="customer">Customer</MenuItem>
@@ -85,11 +88,11 @@ const VerificationTable = ({
           </Select>
         </FormControl>
 
-        <FormControl size="small" sx={{ minWidth: 150 }}>
+        <FormControl size="small" sx={{ minWidth: { xs: "100%", sm: 140 }, flex: { xs: 1, sm: "unset" } }}>
           <Select
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value)}
-            sx={{ borderRadius: "10px", fontSize: "13px" }}
+            sx={{ borderRadius: "10px", fontSize: "12.5px" }}
           >
             <MenuItem value="all">All Statuses</MenuItem>
             <MenuItem value="pending">Pending Review</MenuItem>
@@ -105,37 +108,45 @@ const VerificationTable = ({
             textTransform: "none",
             color: "#017E53",
             fontWeight: 700,
-            ml: "auto",
+            ml: { xs: 0, sm: "auto" },
+            fontSize: "12.5px",
           }}
         >
           Reset Filters
         </Button>
       </Box>
 
-      {/* Table Body */}
-      <TableContainer>
-        <Table>
+      {/* 2. Isolated Scrollable Table */}
+      <TableContainer
+        sx={{
+          width: "100%",
+          maxWidth: "100%",
+          overflowX: "auto", // Confines table scrolling exclusively to this element
+          WebkitOverflowScrolling: "touch",
+        }}
+      >
+        <Table sx={{ minWidth: 700 }}>
           <TableHead sx={{ bgcolor: "#F9FAFB" }}>
             <TableRow>
               <TableCell padding="checkbox">
                 <Checkbox size="small" />
               </TableCell>
-              <TableCell sx={{ fontSize: "11px", fontWeight: 700, color: "#6B7280" }}>
+              <TableCell sx={{ fontSize: "11px", fontWeight: 700, color: "#6B7280", whiteSpace: "nowrap" }}>
                 USER INFORMATION
               </TableCell>
-              <TableCell sx={{ fontSize: "11px", fontWeight: 700, color: "#6B7280" }}>
+              <TableCell sx={{ fontSize: "11px", fontWeight: 700, color: "#6B7280", whiteSpace: "nowrap" }}>
                 TYPE
               </TableCell>
-              <TableCell sx={{ fontSize: "11px", fontWeight: 700, color: "#6B7280" }}>
+              <TableCell sx={{ fontSize: "11px", fontWeight: 700, color: "#6B7280", whiteSpace: "nowrap" }}>
                 REQUIREMENT
               </TableCell>
-              <TableCell sx={{ fontSize: "11px", fontWeight: 700, color: "#6B7280" }}>
+              <TableCell sx={{ fontSize: "11px", fontWeight: 700, color: "#6B7280", whiteSpace: "nowrap" }}>
                 DOCUMENTS
               </TableCell>
-              <TableCell sx={{ fontSize: "11px", fontWeight: 700, color: "#6B7280" }}>
+              <TableCell sx={{ fontSize: "11px", fontWeight: 700, color: "#6B7280", whiteSpace: "nowrap" }}>
                 SUBMITTED ON
               </TableCell>
-              <TableCell align="right" sx={{ fontSize: "11px", fontWeight: 700, color: "#6B7280" }}>
+              <TableCell align="right" sx={{ fontSize: "11px", fontWeight: 700, color: "#6B7280", whiteSpace: "nowrap" }}>
                 ACTION
               </TableCell>
             </TableRow>
@@ -169,7 +180,7 @@ const VerificationTable = ({
                     }}
                   >
                     <TableCell padding="checkbox" onClick={(e) => e.stopPropagation()}>
-                      <Checkbox size="small" />
+                      <Checkbox size="small" checked={isSelected} />
                     </TableCell>
                     <TableCell>
                       <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
@@ -182,7 +193,7 @@ const VerificationTable = ({
                         <Box>
                           <Typography
                             variant="subtitle2"
-                            sx={{ fontWeight: 700, color: "#111827", fontSize: "13px" }}
+                            sx={{ fontWeight: 700, color: "#111827", fontSize: "13px", whiteSpace: "nowrap" }}
                           >
                             {row.user?.name}
                           </Typography>
@@ -205,7 +216,7 @@ const VerificationTable = ({
                         }}
                       />
                     </TableCell>
-                    <TableCell sx={{ fontSize: "12.5px", fontWeight: 600, color: "#374151" }}>
+                    <TableCell sx={{ fontSize: "12.5px", fontWeight: 600, color: "#374151", whiteSpace: "nowrap" }}>
                       {row.verification?.type || "Identity"}
                     </TableCell>
                     <TableCell>
@@ -227,7 +238,7 @@ const VerificationTable = ({
                         ))}
                       </Box>
                     </TableCell>
-                    <TableCell sx={{ fontSize: "12px", color: "#6B7280" }}>
+                    <TableCell sx={{ fontSize: "12px", color: "#6B7280", whiteSpace: "nowrap" }}>
                       {row.verification?.submittedAt ? row.verification.submittedAt.split(" ")[0] : "N/A"}
                     </TableCell>
                     <TableCell align="right">
@@ -244,7 +255,8 @@ const VerificationTable = ({
                           fontSize: "12px",
                           borderColor: "#E5E7EB",
                           color: "#374151",
-                          "&:hover": { borderColor: "#017E53", color: "#017E53" },
+                          px: 2,
+                          "&:hover": { borderColor: "#017E53", color: "#017E53", bgcolor: "#F0FDF4" },
                         }}
                       >
                         Review
@@ -258,71 +270,66 @@ const VerificationTable = ({
         </Table>
       </TableContainer>
 
-      {/* MATCHING FOOTER: Showing 1-X of Y + Rows Select + Pagination */}
+      {/* 3. Responsive Pagination Footer */}
       <Box
         sx={{
-          p: 2,
+          p: { xs: 1.5, sm: 2 },
           display: "flex",
           alignItems: "center",
           justifyContent: "space-between",
           flexWrap: "wrap",
-          gap: 2,
+          gap: 1.5,
           borderTop: "1px solid #F3F4F6",
         }}
       >
-        {/* Left: Showing Range */}
-        <Typography variant="body2" sx={{ color: "#6B7280", fontSize: "13px" }}>
-          Showing{" "}
-          <strong style={{ color: "#111827" }}>
-            {from} - {to}
-          </strong>{" "}
-          of <strong style={{ color: "#111827" }}>{totalItems.toLocaleString()}</strong> users
+        <Typography variant="body2" sx={{ color: "#6B7280", fontSize: { xs: "12px", sm: "13px" } }}>
+          Showing <strong>{from} - {to}</strong> of <strong>{totalItems.toLocaleString()}</strong> users
         </Typography>
 
-        {/* Center: Rows Limit Dropdown */}
-        <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-          <Typography variant="body2" sx={{ color: "#6B7280", fontSize: "13px" }}>
-            Rows:
-          </Typography>
-          <FormControl size="small">
-            <Select
-              value={itemsPerPage}
-              onChange={(e) => onLimitChange(Number(e.target.value))}
-              sx={{
-                borderRadius: "8px",
-                fontSize: "13px",
-                fontWeight: 600,
-                height: "32px",
-                "& .MuiSelect-select": { py: 0.5, px: 1.5 },
-              }}
-            >
-              <MenuItem value={10}>10</MenuItem>
-              <MenuItem value={20}>20</MenuItem>
-              <MenuItem value={50}>50</MenuItem>
-              <MenuItem value={100}>100</MenuItem>
-            </Select>
-          </FormControl>
-        </Box>
+        <Box sx={{ display: "flex", alignItems: "center", gap: 1.5, flexWrap: "wrap" }}>
+          <Box sx={{ display: "flex", alignItems: "center", gap: 0.8 }}>
+            <Typography variant="body2" sx={{ color: "#6B7280", fontSize: "12px" }}>
+              Rows:
+            </Typography>
+            <FormControl size="small">
+              <Select
+                value={itemsPerPage}
+                onChange={(e) => onLimitChange(Number(e.target.value))}
+                sx={{
+                  borderRadius: "8px",
+                  fontSize: "12px",
+                  fontWeight: 600,
+                  height: "30px",
+                  "& .MuiSelect-select": { py: 0.4, px: 1 },
+                }}
+              >
+                <MenuItem value={10}>10</MenuItem>
+                <MenuItem value={20}>20</MenuItem>
+                <MenuItem value={50}>50</MenuItem>
+                <MenuItem value={100}>100</MenuItem>
+              </Select>
+            </FormControl>
+          </Box>
 
-        {/* Right: Pagination Controls */}
-        <Pagination
-          count={pagination?.totalPages || 1}
-          page={currentPage}
-          onChange={(e, page) => onPageChange(page)}
-          shape="rounded"
-          size="small"
-          sx={{
-            "& .MuiPaginationItem-root": {
-              borderRadius: "8px",
-              fontWeight: 600,
-              fontSize: "12.5px",
-            },
-            "& .Mui-selected": {
-              bgcolor: "#017E53 !important",
-              color: "#FFFFFF",
-            },
-          }}
-        />
+          <Pagination
+            count={totalPages}
+            page={currentPage}
+            onChange={(e, page) => onPageChange(page)}
+            shape="rounded"
+            size="small"
+            sx={{
+              "& .MuiPaginationItem-root": {
+                borderRadius: "8px",
+                fontWeight: 600,
+                fontSize: "12px",
+              },
+              "& .Mui-selected": {
+                bgcolor: "#017E53 !important",
+                color: "#FFFFFF",
+              },
+            }}
+          />
+        </Box>
       </Box>
     </Paper>
   );

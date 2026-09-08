@@ -57,7 +57,6 @@ const PayoutTable = ({
   selectedId,
   isDrawerOpen,
   onRowClick,
-  onInlineAction,
   searchQuery,
   onSearchChange,
   pagination,
@@ -65,11 +64,13 @@ const PayoutTable = ({
   limit,
   onLimitChange,
 }) => {
-  const totalItems = pagination?.totalItems || data.length || 0;
-  const currentPage = pagination?.currentPage || 1;
-  const itemsPerPage = limit || 10;
+  const totalItems = pagination?.total || 0;
+  const currentPage = pagination?.page || 1;
+  const itemsPerPage = limit || pagination?.limit || 20;
+
   const from = totalItems === 0 ? 0 : (currentPage - 1) * itemsPerPage + 1;
   const to = Math.min(currentPage * itemsPerPage, totalItems);
+  const totalPages = Math.ceil(totalItems / itemsPerPage) || 1;
 
   return (
     <Paper
@@ -78,55 +79,58 @@ const PayoutTable = ({
         borderRadius: "16px",
         border: "1px solid #E5E7EB",
         bgcolor: "#FFFFFF",
-        overflow: "hidden",
+        width: "100%",
+        maxWidth: "100%",
+        boxSizing: "border-box",
+        overflow: "hidden", // Cuts off bleed to outer layout
       }}
     >
-      {/* Header Bar inside table container */}
+      {/* 1. Header Toolbar (wraps cleanly on mobile) */}
       <Box
         sx={{
-          p: 2.5,
+          p: { xs: 1.5, sm: 2.5 },
           display: "flex",
           justifyContent: "space-between",
           alignItems: "center",
           flexWrap: "wrap",
-          gap: 2,
+          gap: 1.5,
           borderBottom: "1px solid #F3F4F6",
         }}
       >
-        <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
-          <Typography variant="h6" sx={{ fontWeight: 800, color: "#111827", fontSize: "16px" }}>
+        <Box sx={{ display: "flex", alignItems: "center", gap: 1.2 }}>
+          <Typography variant="h6" sx={{ fontWeight: 800, color: "#111827", fontSize: "15px" }}>
             Withdrawal Queue
           </Typography>
           <Chip
-            label={`${data.length} NEW REQUESTS`}
+            label={`${data.length} NEW`}
             size="small"
             sx={{
               bgcolor: "#ECFDF5",
               color: "#017E53",
               fontWeight: 800,
               fontSize: "10px",
-              height: 22,
+              height: 20,
               borderRadius: "6px",
             }}
           />
         </Box>
 
-        <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
+        <Box sx={{ display: "flex", alignItems: "center", gap: 1, width: { xs: "100%", sm: "auto" } }}>
           <TextField
             size="small"
             placeholder="Search requests..."
             value={searchQuery}
             onChange={(e) => onSearchChange(e.target.value)}
             InputProps={{
-              startAdornment: (
-                <Search sx={{ fontSize: 18, color: "#9CA3AF", mr: 1 }} />
-              ),
+              startAdornment: <Search sx={{ fontSize: 18, color: "#9CA3AF", mr: 1 }} />,
             }}
             sx={{
-              width: { xs: "100%", sm: 240 },
+              flex: { xs: 1, sm: "unset" },
+              width: { xs: "100%", sm: 220 },
               "& .MuiOutlinedInput-root": {
                 borderRadius: "10px",
                 bgcolor: "#F8FAFC",
+                fontSize: "12.5px",
               },
             }}
           />
@@ -139,6 +143,7 @@ const PayoutTable = ({
               color: "#475569",
               borderColor: "#E2E8F0",
               fontWeight: 600,
+              flexShrink: 0,
             }}
           >
             Filter
@@ -146,31 +151,38 @@ const PayoutTable = ({
         </Box>
       </Box>
 
-      {/* Table */}
-      <TableContainer>
-        <Table>
+      {/* 2. Isolated Scrollable Table Container */}
+      <TableContainer
+        sx={{
+          width: "100%",
+          maxWidth: "100%",
+          overflowX: "auto", // Keeps horizontal scrolling strictly inside the table
+          WebkitOverflowScrolling: "touch",
+        }}
+      >
+        <Table sx={{ minWidth: 700 }}>
           <TableHead sx={{ bgcolor: "#F9FAFB" }}>
             <TableRow>
               <TableCell padding="checkbox">
                 <Checkbox size="small" />
               </TableCell>
-              <TableCell sx={{ fontSize: "11px", fontWeight: 700, color: "#6B7280" }}>
+              <TableCell sx={{ fontSize: "11px", fontWeight: 700, color: "#6B7280", whiteSpace: "nowrap" }}>
                 REQUEST ID / DATE
               </TableCell>
-              <TableCell sx={{ fontSize: "11px", fontWeight: 700, color: "#6B7280" }}>
+              <TableCell sx={{ fontSize: "11px", fontWeight: 700, color: "#6B7280", whiteSpace: "nowrap" }}>
                 AGENT
               </TableCell>
-              <TableCell sx={{ fontSize: "11px", fontWeight: 700, color: "#6B7280" }}>
+              <TableCell sx={{ fontSize: "11px", fontWeight: 700, color: "#6B7280", whiteSpace: "nowrap" }}>
                 AMOUNT (₦)
               </TableCell>
-              <TableCell sx={{ fontSize: "11px", fontWeight: 700, color: "#6B7280" }}>
+              <TableCell sx={{ fontSize: "11px", fontWeight: 700, color: "#6B7280", whiteSpace: "nowrap" }}>
                 BANK (MASKED)
               </TableCell>
-              <TableCell sx={{ fontSize: "11px", fontWeight: 700, color: "#6B7280" }}>
+              <TableCell sx={{ fontSize: "11px", fontWeight: 700, color: "#6B7280", whiteSpace: "nowrap" }}>
                 STATUS
               </TableCell>
-              <TableCell align="right" sx={{ fontSize: "11px", fontWeight: 700, color: "#6B7280" }}>
-                ACTIONS
+              <TableCell align="right" sx={{ fontSize: "11px", fontWeight: 700, color: "#6B7280", whiteSpace: "nowrap" }}>
+                ACTION
               </TableCell>
             </TableRow>
           </TableHead>
@@ -209,10 +221,7 @@ const PayoutTable = ({
                     </TableCell>
 
                     <TableCell>
-                      <Typography
-                        variant="body2"
-                        sx={{ fontWeight: 700, color: "#0F172A", fontSize: "13px" }}
-                      >
+                      <Typography variant="body2" sx={{ fontWeight: 700, color: "#0F172A", fontSize: "13px" }}>
                         {row.reference?.slice(0, 14)}...
                       </Typography>
                       <Typography variant="caption" sx={{ color: "#94A3B8" }}>
@@ -235,10 +244,7 @@ const PayoutTable = ({
                           {row.lastname?.[0]}
                         </Avatar>
                         <Box>
-                          <Typography
-                            variant="subtitle2"
-                            sx={{ fontWeight: 700, color: "#0F172A", fontSize: "13px" }}
-                          >
+                          <Typography variant="subtitle2" sx={{ fontWeight: 700, color: "#0F172A", fontSize: "13px" }}>
                             {row.firstname} {row.lastname}
                           </Typography>
                           <Typography variant="caption" sx={{ color: "#64748B" }}>
@@ -248,7 +254,7 @@ const PayoutTable = ({
                       </Box>
                     </TableCell>
 
-                    <TableCell sx={{ fontWeight: 800, color: "#0F172A", fontSize: "13.5px" }}>
+                    <TableCell sx={{ fontWeight: 800, color: "#0F172A", fontSize: "13.5px", whiteSpace: "nowrap" }}>
                       {formatNaira(row.amount)}
                     </TableCell>
 
@@ -277,59 +283,27 @@ const PayoutTable = ({
                     </TableCell>
 
                     <TableCell align="right" onClick={(e) => e.stopPropagation()}>
-                      <Box sx={{ display: "flex", justifyContent: "flex-end", gap: 1 }}>
-                        <Button
-                          size="small"
-                          variant="contained"
-                          onClick={() => onInlineAction("approve", row.id)}
-                          sx={{
-                            bgcolor: "#017E53",
-                            color: "#FFFFFF",
-                            textTransform: "none",
-                            borderRadius: "6px",
-                            fontSize: "11px",
-                            fontWeight: 700,
-                            px: 1.5,
-                            boxShadow: "none",
-                            "&:hover": { bgcolor: "#016744" },
-                          }}
-                        >
-                          Approve
-                        </Button>
-                        <Button
-                          size="small"
-                          variant="outlined"
-                          onClick={() => onInlineAction("reject", row.id)}
-                          sx={{
-                            color: "#DC2626",
-                            borderColor: "#FCA5A5",
-                            textTransform: "none",
-                            borderRadius: "6px",
-                            fontSize: "11px",
-                            fontWeight: 700,
-                            px: 1.5,
-                            "&:hover": { borderColor: "#EF4444", bgcolor: "#FEF2F2" },
-                          }}
-                        >
-                          Reject
-                        </Button>
-                        <Button
-                          size="small"
-                          onClick={() => onInlineAction("mark_paid", row.id)}
-                          sx={{
-                            bgcolor: "#F1F5F9",
-                            color: "#475569",
-                            textTransform: "none",
-                            borderRadius: "6px",
-                            fontSize: "11px",
-                            fontWeight: 700,
-                            px: 1.5,
-                            "&:hover": { bgcolor: "#E2E8F0" },
-                          }}
-                        >
-                          Mark Paid
-                        </Button>
-                      </Box>
+                      <Button
+                        size="small"
+                        variant="outlined"
+                        onClick={() => onRowClick(row)}
+                        sx={{
+                          textTransform: "none",
+                          borderRadius: "8px",
+                          fontSize: "12px",
+                          fontWeight: 700,
+                          borderColor: "#E5E7EB",
+                          color: "#374151",
+                          px: 2,
+                          "&:hover": {
+                            borderColor: "#017E53",
+                            color: "#017E53",
+                            bgcolor: "#F0FDF4",
+                          },
+                        }}
+                      >
+                        Review
+                      </Button>
                     </TableCell>
                   </TableRow>
                 );
@@ -339,58 +313,60 @@ const PayoutTable = ({
         </Table>
       </TableContainer>
 
-      {/* Pagination Footer */}
+      {/* 3. Pagination Footer (responsive wrap) */}
       <Box
         sx={{
-          p: 2,
+          p: { xs: 1.5, sm: 2 },
           display: "flex",
           justifyContent: "space-between",
           alignItems: "center",
           flexWrap: "wrap",
-          gap: 2,
+          gap: 1.5,
           borderTop: "1px solid #F3F4F6",
         }}
       >
-        <Typography variant="body2" sx={{ color: "#6B7280", fontSize: "13px" }}>
+        <Typography variant="body2" sx={{ color: "#6B7280", fontSize: { xs: "12px", sm: "13px" } }}>
           Showing <strong>{from} - {to}</strong> of <strong>{totalItems}</strong> requests
         </Typography>
 
-        <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-          <Typography variant="body2" sx={{ color: "#6B7280", fontSize: "13px" }}>
-            Rows:
-          </Typography>
-          <FormControl size="small">
-            <Select
-              value={itemsPerPage}
-              onChange={(e) => onLimitChange(Number(e.target.value))}
-              sx={{
-                borderRadius: "8px",
-                fontSize: "13px",
-                fontWeight: 600,
-                height: "32px",
-                "& .MuiSelect-select": { py: 0.5, px: 1.5 },
-              }}
-            >
-              <MenuItem value={10}>10</MenuItem>
-              <MenuItem value={20}>20</MenuItem>
-              <MenuItem value={50}>50</MenuItem>
-            </Select>
-          </FormControl>
-        </Box>
+        <Box sx={{ display: "flex", alignItems: "center", gap: 1.5, flexWrap: "wrap" }}>
+          <Box sx={{ display: "flex", alignItems: "center", gap: 0.8 }}>
+            <Typography variant="body2" sx={{ color: "#6B7280", fontSize: "12px" }}>
+              Rows:
+            </Typography>
+            <FormControl size="small">
+              <Select
+                value={itemsPerPage}
+                onChange={(e) => onLimitChange(Number(e.target.value))}
+                sx={{
+                  borderRadius: "8px",
+                  fontSize: "12px",
+                  fontWeight: 600,
+                  height: "30px",
+                  "& .MuiSelect-select": { py: 0.4, px: 1 },
+                }}
+              >
+                <MenuItem value={10}>10</MenuItem>
+                <MenuItem value={20}>20</MenuItem>
+                <MenuItem value={50}>50</MenuItem>
+              </Select>
+            </FormControl>
+          </Box>
 
-        <Pagination
-          count={pagination?.totalPages || 1}
-          page={currentPage}
-          onChange={(e, p) => onPageChange(p)}
-          shape="rounded"
-          size="small"
-          sx={{
-            "& .Mui-selected": {
-              bgcolor: "#017E53 !important",
-              color: "#FFFFFF",
-            },
-          }}
-        />
+          <Pagination
+            count={totalPages}
+            page={currentPage}
+            onChange={(e, p) => onPageChange(p)}
+            shape="rounded"
+            size="small"
+            sx={{
+              "& .Mui-selected": {
+                bgcolor: "#017E53 !important",
+                color: "#FFFFFF",
+              },
+            }}
+          />
+        </Box>
       </Box>
     </Paper>
   );

@@ -10,8 +10,7 @@ import VerificationDrawer from "./components/VerificationDrawer";
 
 const ManageVerifications = () => {
   const uri = useSelector((state) => state.UriReducer?.uri);
-  const token = sessionStorage.getItem("userToken");
-
+  const token = sessionStorage.getItem("userToken")
   const [verifications, setVerifications] = useState([]);
   const [analyticsStats, setAnalyticsStats] = useState(null);
   const [pagination, setPagination] = useState({
@@ -39,17 +38,15 @@ const ManageVerifications = () => {
 
   const fetchVerifications = async (page = 1, currentLimit = limit) => {
     try {
-      setLoading(true);
+      setLoading(true);      
       const res = await axios.get(`${uri}admin/verifications`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
         params: {
           page,
           limit: currentLimit,
           userType: userTypeFilter !== "all" ? userTypeFilter : undefined,
           status: statusFilter !== "all" ? statusFilter : undefined,
         },
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
       });
 
       setVerifications(res.data?.data || []);
@@ -57,10 +54,10 @@ const ManageVerifications = () => {
 
       if (res.data?.pagination) {
         setPagination({
-          currentPage: res.data.pagination.currentPage,
-          totalPages: res.data.pagination.totalPages,
-          totalItems: res.data.pagination.totalItems,
-          itemsPerPage: res.data.pagination.itemsPerPage,
+          currentPage: res.data.pagination.currentPage || page,
+          totalPages: res.data.pagination.totalPages || 1,
+          totalItems: res.data.pagination.totalItems || res.data.data?.length || 0,
+          itemsPerPage: res.data.pagination.itemsPerPage || currentLimit,
         });
       }
     } catch (err) {
@@ -77,11 +74,12 @@ const ManageVerifications = () => {
 
   const filteredVerifications = useMemo(() => {
     if (!searchQuery.trim()) return verifications;
+    const q = searchQuery.toLowerCase();
     return verifications.filter(
       (item) =>
-        item.user?.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        item.user?.email?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        String(item.id).includes(searchQuery)
+        item.user?.name?.toLowerCase().includes(q) ||
+        item.user?.email?.toLowerCase().includes(q) ||
+        String(item.id).includes(q)
     );
   }, [verifications, searchQuery]);
 
@@ -89,10 +87,15 @@ const ManageVerifications = () => {
     if (!selectedVerification) return;
     try {
       setActionLoading(true);
-      await axios.patch(`${uri}admin/verifications/${selectedVerification.id}`, {
-        status: decision,
-        reason: notes,
-      });
+      const token = sessionStorage.getItem("token") || localStorage.getItem("token");
+      await axios.patch(
+        `${uri}admin/verifications/${selectedVerification.id}`,
+        {
+          status: decision,
+          reason: notes,
+        },
+        { headers: token ? { Authorization: `Bearer ${token}` } : {} }
+      );
 
       setVerifications((prev) =>
         prev.map((item) =>
@@ -110,28 +113,55 @@ const ManageVerifications = () => {
   };
 
   return (
-    <Box sx={{ p: { xs: 2, md: 3 }, bgcolor: "#F9FAFB", minHeight: "100vh" }}>
+    <Box
+      sx={{
+        p: { xs: 1.5, sm: 2, md: 3 },
+        bgcolor: "#F9FAFB",
+        minHeight: "100vh",
+        width: "100%",
+        maxWidth: "100vw",
+        overflowX: "hidden", // Locks horizontal page scroll
+        boxSizing: "border-box",
+      }}
+    >
       {/* Top Header */}
       <Box
         sx={{
           display: "flex",
           justifyContent: "space-between",
-          alignItems: "center",
+          alignItems: { xs: "stretch", md: "center" },
+          flexDirection: { xs: "column", md: "row" },
           mb: 2.5,
-          flexWrap: "wrap",
           gap: 2,
+          width: "100%",
+          boxSizing: "border-box",
         }}
       >
         <div>
-          <Typography variant="caption" sx={{ color: "#9CA3AF", fontWeight: 700, textTransform: "uppercase" }}>
+          <Typography
+            variant="caption"
+            sx={{ color: "#9CA3AF", fontWeight: 700, textTransform: "uppercase", fontSize: "11px" }}
+          >
             HOME • USERS • VERIFICATIONS
           </Typography>
-          <Typography variant="h5" sx={{ fontWeight: 800, color: "#111827" }}>
+          <Typography
+            variant="h5"
+            sx={{ fontWeight: 800, color: "#111827", fontSize: { xs: "20px", sm: "24px" } }}
+          >
             Manage Verifications
           </Typography>
         </div>
 
-        <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
+        {/* Action Controls - Wraps gracefully on mobile */}
+        {/* <Box
+          sx={{
+            display: "flex",
+            alignItems: "center",
+            gap: 1,
+            flexWrap: { xs: "wrap", sm: "nowrap" },
+            width: { xs: "100%", md: "auto" },
+          }}
+        >
           <TextField
             size="small"
             placeholder="Search by name, ID or email..."
@@ -141,8 +171,9 @@ const ManageVerifications = () => {
               startAdornment: <Search sx={{ fontSize: 18, color: "#9CA3AF", mr: 1 }} />,
             }}
             sx={{
-              width: { xs: "100%", sm: 280 },
-              "& .MuiOutlinedInput-root": { borderRadius: "10px", bgcolor: "#FFFFFF" },
+              flex: { xs: "1 1 100%", sm: "unset" },
+              width: { xs: "100%", sm: 240, md: 280 },
+              "& .MuiOutlinedInput-root": { borderRadius: "10px", bgcolor: "#FFFFFF", fontSize: "13px" },
             }}
           />
           <Button
@@ -154,6 +185,10 @@ const ManageVerifications = () => {
               color: "#374151",
               borderColor: "#E5E7EB",
               bgcolor: "#FFFFFF",
+              fontWeight: 700,
+              fontSize: "13px",
+              flex: { xs: 1, sm: "unset" },
+              whiteSpace: "nowrap",
             }}
           >
             Export
@@ -165,15 +200,19 @@ const ManageVerifications = () => {
               borderRadius: "10px",
               bgcolor: "#017E53",
               fontWeight: 700,
+              fontSize: "13px",
+              boxShadow: "none",
+              flex: { xs: 1, sm: "unset" },
+              whiteSpace: "nowrap",
               "&:hover": { bgcolor: "#016744" },
             }}
           >
             Bulk Approve
           </Button>
-        </Box>
+        </Box> */}
       </Box>
 
-      {/* Analytics Cards */}
+      {/* Analytics Metric Cards */}
       <VerificationStats stats={analyticsStats} />
 
       {/* Main Table */}

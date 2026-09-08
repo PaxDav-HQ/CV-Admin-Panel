@@ -10,7 +10,7 @@ import PayoutDrawer from "./components/PayoutDrawer";
 
 const ManagePayouts = () => {
   const uri = useSelector((state) => state.UriReducer?.uri);
-  const token = sessionStorage.getItem("userToken");
+  const token = sessionStorage.getItem("userToken")
 
   const [cards, setCards] = useState([]);
   const [payouts, setPayouts] = useState([]);
@@ -18,11 +18,12 @@ const ManagePayouts = () => {
   const [searchQuery, setSearchQuery] = useState("");
 
   const [pagination, setPagination] = useState({
-    currentPage: 1,
-    totalPages: 1,
-    totalItems: 0,
+    page: 1,
+    limit: 20,
+    offset: 0,
+    total: 0,
   });
-  const [limit, setLimit] = useState(10);
+  const [limit, setLimit] = useState(20);
 
   // Drawer
   const [selectedRequest, setSelectedRequest] = useState(null);
@@ -35,28 +36,22 @@ const ManagePayouts = () => {
 
   const fetchPayouts = async (page = 1, currentLimit = limit) => {
     try {
-      setLoading(true);
+      setLoading(true);      
       const res = await axios.get(`${uri}admin/payouts`, {
         params: { page, limit: currentLimit },
-        headers: token ? { Authorization: `Bearer ${token}` } : {},
+        headers: { Authorization: `Bearer ${token}` },
       });
 
       setCards(res.data?.cards || []);
       setPayouts(res.data?.data || []);
 
-      if (res.data?.pagination) {
-        setPagination({
-          currentPage: res.data.pagination.currentPage || page,
-          totalPages: res.data.pagination.totalPages || 1,
-          totalItems: res.data.pagination.totalItems || res.data.data?.length || 0,
-        });
-      } else {
-        setPagination({
-          currentPage: page,
-          totalPages: Math.ceil((res.data?.data?.length || 0) / currentLimit) || 1,
-          totalItems: res.data?.data?.length || 0,
-        });
-      }
+      // Wire exact pagination structure
+      setPagination({
+        page: res.data?.pagination?.page || page,
+        limit: res.data?.pagination?.limit || currentLimit,
+        offset: res.data?.pagination?.offset || 0,
+        total: res.data?.total || res.data?.data?.length || 0,
+      });
     } catch (err) {
       console.error("Failed to load payout data:", err);
     } finally {
@@ -79,12 +74,11 @@ const ManagePayouts = () => {
 
   const handleAction = async (actionType, id, note = "") => {
     try {
-      setActionLoading(true);
-      const token = sessionStorage.getItem("token") || localStorage.getItem("token");
+      setActionLoading(true);      
       await axios.patch(
         `${uri}admin/payouts/${id}`,
         { action: actionType, note },
-        { headers: token ? { Authorization: `Bearer ${token}` } : {} }
+        { headers: { Authorization: `Bearer ${token}` } }
       );
 
       const updatedStatus =
@@ -112,7 +106,17 @@ const ManagePayouts = () => {
   };
 
   return (
-    <Box sx={{ p: { xs: 2, md: 3 }, bgcolor: "#F9FAFB", minHeight: "100vh" }}>
+    <Box
+    sx={{
+      p: { xs: 1.5, sm: 2, md: 3 },
+      bgcolor: "#F9FAFB",
+      minHeight: "100vh",
+      width: "100%",
+      maxWidth: "100vw",
+      overflowX: "hidden", // Locks the page from scrolling sideways
+      boxSizing: "border-box",
+    }}
+  >
       {/* Top Header */}
       <Box
         sx={{
@@ -131,14 +135,14 @@ const ManagePayouts = () => {
             <span style={{ color: "#475569" }}>Withdrawals</span>
           </Box>
           <Typography variant="h5" sx={{ fontWeight: 800, color: "#0F172A", letterSpacing: "-0.5px" }}>
-            Withdrawals & Payouts (Simplified)
+            Withdrawals & Payouts
           </Typography>
           <Typography variant="body2" sx={{ color: "#64748B", mt: 0.2 }}>
             Review and approve agent withdrawal requests for manual payout processing.
           </Typography>
         </Box>
 
-        <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
+        {/* <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
           <Button
             variant="outlined"
             startIcon={<FileDownloadOutlined />}
@@ -167,7 +171,7 @@ const ManagePayouts = () => {
           >
             Bulk Actions
           </Button>
-        </Box>
+        </Box> */}
       </Box>
 
       {/* Metric Cards */}
@@ -183,7 +187,6 @@ const ManagePayouts = () => {
           setSelectedRequest(row);
           setIsDrawerOpen(true);
         }}
-        onInlineAction={(action, id) => handleAction(action, id)}
         searchQuery={searchQuery}
         onSearchChange={setSearchQuery}
         pagination={pagination}

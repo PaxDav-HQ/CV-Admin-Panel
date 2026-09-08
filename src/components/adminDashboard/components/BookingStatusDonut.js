@@ -53,10 +53,10 @@ const BookingStatusDonut = ({ bookingStatus = {} }) => {
   };
 
   const statusItems = [
-    { label: "Completed", count: bookingStatus.completed?.count || 22, pct: bookingStatus.completed?.percentage || 31, color: "#10B981" },
-    { label: "Confirmed", count: bookingStatus.confirmed?.count || 23, pct: bookingStatus.confirmed?.percentage || 32.4, color: "#3B82F6" },
-    { label: "Pending", count: bookingStatus.pending?.count || 6, pct: bookingStatus.pending?.percentage || 8.5, color: "#F59E0B" },
-    { label: "Cancelled", count: bookingStatus.cancelled?.count || 17, pct: bookingStatus.cancelled?.percentage || 23.9, color: "#EF4444" },
+    { label: "Completed", count: bookingStatus.completed?.count, pct: bookingStatus.completed?.percentage, color: "#10B981" },
+    { label: "Confirmed", count: bookingStatus.confirmed?.count, pct: bookingStatus.confirmed?.percentage, color: "#3B82F6" },
+    { label: "Pending", count: bookingStatus.pending?.count, pct: bookingStatus.pending?.percentage, color: "#F59E0B" },
+    { label: "Cancelled", count: bookingStatus.cancelled?.count, pct: bookingStatus.cancelled?.percentage, color: "#EF4444" },
   ];
 
   return (

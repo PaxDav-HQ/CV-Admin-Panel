@@ -16,14 +16,15 @@ const QuickActionsModule = ({ pendingVerificationsCount = 1 }) => {
   const actions = [
     { label: "Add Property / Listing", icon: <AddHomeWorkOutlined sx={{ fontSize: 18, color: "#6B7280" }} />, route: "/admin/property-types" },
     { label: "Add Services", icon: <HandymanOutlined sx={{ fontSize: 18, color: "#6B7280" }} />, route: "/admin/services" },
-    { label: "Send Announcement", icon: <CampaignOutlined sx={{ fontSize: 18, color: "#6B7280" }} />, route: "/admin/announcements" },
+    // { label: "Send Announcement", icon: <CampaignOutlined sx={{ fontSize: 18, color: "#6B7280" }} />, route: "/admin/announcements" },
     { label: "Manage Users", icon: <ManageAccountsOutlined sx={{ fontSize: 18, color: "#6B7280" }} />, route: "/admin/users" },
     {
       label: "Approve Verifications",
       icon: <VerifiedUserOutlined sx={{ fontSize: 18, color: "#6B7280" }} />,
       badge: pendingVerificationsCount,
+      route: "/admin/verification",
     },
-    { label: "View Reports", icon: <AssessmentOutlined sx={{ fontSize: 18, color: "#6B7280" }} /> },
+    { label: "View Reports", route: "/admin/reports", icon: <AssessmentOutlined sx={{ fontSize: 18, color: "#6B7280" }} /> },
   ];
 
   return (
