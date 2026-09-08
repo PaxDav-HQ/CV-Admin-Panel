@@ -80,9 +80,9 @@ const CreateListingWizard = () => {
       {
         name: "Deluxe Room",
         bed_type: "King Bed",
-        max_occupancy: "2 Guests",
-        price_per_night: "",
-        available_rooms: "",
+        capacity: "2 Guests",
+        base_price: "",
+        total_rooms: "",
       },
     ],
 
@@ -244,9 +244,9 @@ const CreateListingWizard = () => {
         {
           name: "",
           bed_type: "King Bed",
-          max_occupancy: "2 Guests",
-          price_per_night: "",
-          available_rooms: "",
+          capacity: "2 Guests",
+          base_price: "",
+          total_rooms: "",
         },
       ],
     }));
@@ -329,10 +329,10 @@ const CreateListingWizard = () => {
     // Base Price
     const basePrice =
       activePropertyType === "hotel"
-        ? Number(formData.room_types[0]?.price_per_night) || 0
+        ? Number(formData.room_types[0]?.base_price) || 0
         : Number(formData.total_price) || 0;
 
-    postData.append("total_price", basePrice);
+    postData.append("total_price", formData.total_price);
     postData.append(
       "pricing_type",
       activePropertyType === "hotel" ? "night" : formData.pricing_type
@@ -385,9 +385,9 @@ const CreateListingWizard = () => {
       const sanitizedRooms = formData.room_types.map((room) => ({
         name: room.name,
         bed_type: room.bed_type,
-        max_occupancy: room.max_occupancy,
-        price_per_night: Number(room.price_per_night) || 0,
-        available_rooms: Number(room.available_rooms) || 1,
+        capacity: room.capacity,
+        base_price: Number(room.base_price) || 0,
+        total_rooms: Number(room.total_rooms) || 1,
       }));
       postData.append("room_types", JSON.stringify(sanitizedRooms));
     }

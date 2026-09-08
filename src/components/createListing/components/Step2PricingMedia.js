@@ -145,8 +145,8 @@ const Step2PricingMedia = ({
                     fullWidth
                     size="small"
                     placeholder="2 Guests"
-                    value={room.max_occupancy || ""}
-                    onChange={(e) => onUpdateRoomType(index, "max_occupancy", e.target.value)}
+                    value={room.capacity || ""}
+                    onChange={(e) => onUpdateRoomType(index, "capacity", e.target.value)}
                     InputProps={{
                       startAdornment: (
                         <InputAdornment position="start">
@@ -164,11 +164,11 @@ const Step2PricingMedia = ({
                     fullWidth
                     size="small"
                     placeholder="e.g. 45,000"
-                    value={formatDisplayNumber(room.price_per_night)}
+                    value={formatDisplayNumber(room.base_price)}
                     onChange={(e) =>
                       onUpdateRoomType(
                         index,
-                        "price_per_night",
+                        "base_price",
                         e.target.value.replace(/[^0-9]/g, "")
                       )
                     }
@@ -189,11 +189,11 @@ const Step2PricingMedia = ({
                     fullWidth
                     size="small"
                     placeholder="e.g. 10"
-                    value={room.available_rooms || ""}
+                    value={room.total_rooms || ""}
                     onChange={(e) =>
                       onUpdateRoomType(
                         index,
-                        "available_rooms",
+                        "total_rooms",
                         e.target.value.replace(/[^0-9]/g, "")
                       )
                     }
@@ -577,7 +577,7 @@ const Step2PricingMedia = ({
         endIcon={<ArrowForward />}
         disabled={
           isHotel
-            ? formData.room_types.length === 0 || !formData.room_types[0].price_per_night
+            ? formData.room_types.length === 0 || !formData.room_types[0].base_price
             : !formData.total_price
         }
         onClick={onNext}

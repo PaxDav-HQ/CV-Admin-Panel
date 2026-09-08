@@ -48,7 +48,7 @@ const Step3ReviewSubmit = ({
       return null;
     }
     const prices = formData.room_types
-      .map((r) => Number(r.price_per_night) || 0)
+      .map((r) => Number(r.base_price) || 0)
       .filter((p) => p > 0);
 
     if (prices.length === 0) return "Price on request";
@@ -242,7 +242,7 @@ const Step3ReviewSubmit = ({
                     variant="subtitle2"
                     sx={{ fontWeight: 800, color: "#017E53", fontSize: "13px" }}
                   >
-                    ₦{formatDisplayNumber(room.price_per_night)} / night
+                    ₦{formatDisplayNumber(room.base_price)} / night
                   </Typography>
                 </Paper>
               ))}

@@ -12,6 +12,8 @@ import AllListings from './components/allListings/AllListings';
 import { createTheme, ThemeProvider } from "@mui/material/styles";
 import ListPropertyType from './components/ListPropertyType';
 import CreateListingWizard from './components/createListing/CreateListingWizard';
+import ManageVerifications from './components/verifications/ManageVerifications';
+import ManagePayouts from './components/payouts/ManagePayouts';
 import UnderConstruction from './pages/UnderConstruction'
 
 
@@ -48,9 +50,9 @@ function App() {
           />
           <Route 
             path="/admin/verification" 
-            element={<UnderConstruction featureName="Agent Verification" />} 
+            element={<ManageVerifications />} 
           />
-          <Route path='/admin/transactions' element={<UnderConstruction featureName="Earnings and Transactions" />} />
+          <Route path='/admin/transactions' element={<ManagePayouts />} />
           <Route path='/admin/analytics' element={<UnderConstruction featureName="Analytics" />} />
         </Route>
         <Route path='/admin/property-types' element={<ListPropertyType />} />
