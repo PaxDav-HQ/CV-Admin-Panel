@@ -4,10 +4,10 @@ import Chart from "react-apexcharts";
 
 const BookingStatusDonut = ({ bookingStatus = {} }) => {
   const donutSeries = [
-    bookingStatus.completed?.count || 22,
-    bookingStatus.confirmed?.count || 23,
-    bookingStatus.pending?.count || 6,
-    bookingStatus.cancelled?.count || 17,
+    bookingStatus.completed?.count,
+    bookingStatus.confirmed?.count,
+    bookingStatus.pending?.count,
+    bookingStatus.cancelled?.count,
   ];
 
   const donutOptions = {
