@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useRef } from "react";
 import {
   Box,
   Typography,
@@ -10,6 +10,7 @@ import {
   Button,
   IconButton,
   InputAdornment,
+  Chip,
 } from "@mui/material";
 import {
   ArrowForward,
@@ -26,6 +27,8 @@ import {
   AddCircleOutlined,
 } from "@mui/icons-material";
 import { formatDisplayNumber } from "../utils/numberFormatters";
+
+const MAX_IMAGES = 10;
 
 const DURATION_DAY_OPTIONS = [
   { label: "1 Day", days: 1 },
@@ -59,12 +62,48 @@ const Step2PricingMedia = ({
   onGallerySelect,
   onRemoveGalleryImage,
   onNext,
-  // Handlers for hotel room types
   onAddRoomType,
   onRemoveRoomType,
   onUpdateRoomType,
 }) => {
   const isHotel = propertyType === "hotel";
+  const fileInputRef = useRef(null);
+
+  const currentImageCount = (formData.images || []).length;
+  const isMaxImagesReached = currentImageCount >= MAX_IMAGES;
+
+  // Intercept selection to prevent picking more than 10 total images
+  const handleImageUpload = (e) => {
+    const files = Array.from(e.target.files || []);
+    if (!files.length) return;
+
+    const remainingSlots = MAX_IMAGES - currentImageCount;
+
+    if (remainingSlots <= 0) {
+      alert(`You can only upload a maximum of ${MAX_IMAGES} photos.`);
+      if (fileInputRef.current) fileInputRef.current.value = "";
+      return;
+    }
+
+    if (files.length > remainingSlots) {
+      alert(`You can only add ${remainingSlots} more photo(s). Only the first ${remainingSlots} were selected.`);
+    }
+
+    const allowedFiles = files.slice(0, remainingSlots);
+
+    // Call original onGallerySelect handler passing the allowed file list
+    const syntheticEvent = {
+      ...e,
+      target: {
+        ...e.target,
+        files: allowedFiles,
+      },
+    };
+
+    onGallerySelect(syntheticEvent);
+
+    if (fileInputRef.current) fileInputRef.current.value = "";
+  };
 
   return (
     <Box>
@@ -310,13 +349,20 @@ const Step2PricingMedia = ({
               </FormControl>
             </div>
             <div className="col-12 col-md-6">
-              <label className="form-label small fw-bold text-muted">Additional Charges (Optional)</label>
+              <label className="form-label small fw-bold text-muted">Additional Charges (₦) (Optional)</label>
               <TextField
                 fullWidth
                 size="small"
-                placeholder="e.g electricity, maintenance, cleaning fee"
-                value={formData.additional_charges}
-                onChange={(e) => onChange("additional_charges", e.target.value)}
+                placeholder="e.g. 15,000"
+                value={formatDisplayNumber(formData.additional_charges)}
+                onChange={(e) => onFormattedChange("additional_charges", e.target.value)}
+                InputProps={{
+                  startAdornment: (
+                    <InputAdornment position="start">
+                      <PaymentsOutlined sx={{ color: "#9CA3AF", fontSize: 18 }} />
+                    </InputAdornment>
+                  ),
+                }}
               />
             </div>
           </div>
@@ -432,14 +478,30 @@ const Step2PricingMedia = ({
 
       {/* ===================== MEDIA SECTION ===================== */}
       <Paper elevation={0} className="p-4 border mb-4" sx={{ borderRadius: "16px" }}>
-        <div className="d-flex align-items-center gap-2 mb-1">
-          <DriveFolderUploadOutlined sx={{ color: "#017E53", fontSize: 20 }} />
-          <Typography variant="subtitle2" sx={{ fontWeight: 700, color: "#111827" }}>
-            Media & Photos
-          </Typography>
+        <div className="d-flex justify-content-between align-items-center mb-1">
+          <div className="d-flex align-items-center gap-2">
+            <DriveFolderUploadOutlined sx={{ color: "#017E53", fontSize: 20 }} />
+            <Typography variant="subtitle2" sx={{ fontWeight: 700, color: "#111827" }}>
+              Media & Photos
+            </Typography>
+          </div>
+
+          {/* Upload Counter Badge */}
+          <Chip
+            label={`${currentImageCount}/${MAX_IMAGES} photos`}
+            size="small"
+            sx={{
+              bgcolor: isMaxImagesReached ? "#FEF2F2" : "#ECFDF5",
+              color: isMaxImagesReached ? "#DC2626" : "#017E53",
+              fontWeight: 700,
+              fontSize: "11px",
+              height: 22,
+            }}
+          />
         </div>
+
         <Typography variant="caption" className="text-muted d-block mb-3">
-          Add photos of your {propertyType}. The first photo will automatically serve as your listing's main cover photo.
+          Add up to {MAX_IMAGES} photos of your {propertyType}. The first photo will automatically serve as your listing's main cover photo.
         </Typography>
 
         <div className="d-flex flex-wrap gap-2 mb-3">
@@ -501,35 +563,63 @@ const Step2PricingMedia = ({
             </Box>
           ))}
 
-          <label style={{ cursor: "pointer", margin: 0 }}>
-            <input
-              type="file"
-              accept="image/*"
-              multiple
-              style={{ display: "none" }}
-              onChange={onGallerySelect}
-            />
+          {/* ADD PHOTOS PICKER (Disabled/Hidden when 10 images are reached) */}
+          {!isMaxImagesReached ? (
+            <label style={{ cursor: "pointer", margin: 0 }}>
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/*"
+                multiple
+                style={{ display: "none" }}
+                onChange={handleImageUpload}
+              />
+              <Box
+                sx={{
+                  width: 95,
+                  height: 85,
+                  borderRadius: "10px",
+                  border: "2px dashed #D1D5DB",
+                  display: "flex",
+                  flexDirection: "column",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  bgcolor: "#FAFAFA",
+                  color: "#6B7280",
+                  "&:hover": { borderColor: "#017E53", color: "#017E53" },
+                }}
+              >
+                <Add sx={{ fontSize: 22 }} />
+                <Typography variant="caption" sx={{ fontSize: "10.5px", fontWeight: 700 }}>
+                  Add Photos
+                </Typography>
+              </Box>
+            </label>
+          ) : (
             <Box
               sx={{
                 width: 95,
                 height: 85,
                 borderRadius: "10px",
-                border: "2px dashed #D1D5DB",
+                border: "1px dashed #E5E7EB",
                 display: "flex",
                 flexDirection: "column",
                 alignItems: "center",
                 justifyContent: "center",
-                bgcolor: "#FAFAFA",
-                color: "#6B7280",
-                "&:hover": { borderColor: "#017E53", color: "#017E53" },
+                bgcolor: "#F9FAFB",
+                color: "#9CA3AF",
+                textAlign: "center",
+                px: 1,
               }}
             >
-              <Add sx={{ fontSize: 22 }} />
-              <Typography variant="caption" sx={{ fontSize: "10.5px", fontWeight: 700 }}>
-                Add Photos
+              <Typography variant="caption" sx={{ fontSize: "10px", fontWeight: 700, color: "#DC2626" }}>
+                Limit Reached
+              </Typography>
+              <Typography variant="caption" sx={{ fontSize: "9px", color: "#9CA3AF" }}>
+                Max 10 photos
               </Typography>
             </Box>
-          </label>
+          )}
         </div>
       </Paper>
 

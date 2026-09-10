@@ -256,18 +256,35 @@ const Step3ReviewSubmit = ({
           DESCRIPTION
         </Typography>
         <Typography
+          component="div"
           variant="body2"
           sx={{
             color: "#4B5563",
             fontSize: "12.5px",
             lineHeight: 1.5,
             mb: 2,
+            wordBreak: "break-word",
+            // Preserves list bullets and indentation from the rich text editor
+            "& ul, & ol": {
+              pl: 2.5,
+              my: 0.5,
+            },
+            "& p": {
+              m: 0,
+              mb: 0.5,
+            },
+            "& a": {
+              color: "#017E53",
+              textDecoration: "underline",
+            },
           }}
-        >
-          {formData.description ||
-            formData.short_description ||
-            "No description provided."}
-        </Typography>
+          dangerouslySetInnerHTML={{
+            __html:
+              formData.description ||
+              formData.short_description ||
+              "<em>No description provided.</em>",
+          }}
+        />
 
         <Typography variant="caption" className="text-muted fw-bold d-block mb-1">
           FACILITIES & AMENITIES
