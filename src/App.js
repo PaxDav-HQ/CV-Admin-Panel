@@ -15,6 +15,7 @@ import CreateListingWizard from './components/createListing/CreateListingWizard'
 import ManageVerifications from './components/verifications/ManageVerifications';
 import ManagePayouts from './components/payouts/ManagePayouts';
 import PerformanceOverview from './components/analytics/PerformanceOverview';
+import ServicesManagement from './components/allServices/ServicesManagement';
 import UnderConstruction from './pages/UnderConstruction'
 
 
@@ -47,7 +48,8 @@ function App() {
           <Route path='/admin/listings/all' element={<AllListings />} />
           <Route 
             path="/admin/services" 
-            element={<UnderConstruction featureName="Service Management" />} 
+            element={<ServicesManagement />}
+            // element={<UnderConstruction featureName="Service Management" />} 
           />
           <Route 
             path="/admin/verification" 

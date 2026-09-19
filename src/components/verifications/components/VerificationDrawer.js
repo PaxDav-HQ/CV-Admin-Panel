@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import {
   Box,
   Typography,
@@ -13,11 +13,16 @@ import {
   Dialog,
   DialogContent,
   DialogTitle,
+  FormControlLabel,
+  Alert,
+  useTheme,
+  useMediaQuery,
 } from "@mui/material";
 import {
   Close,
   VerifiedUserOutlined,
   OpenInNew,
+  BookmarkBorderOutlined,
 } from "@mui/icons-material";
 
 const VerificationDrawer = ({
@@ -27,29 +32,84 @@ const VerificationDrawer = ({
   onDecision,
   actionLoading,
 }) => {
-  const [adminNotes, setAdminNotes] = useState("");
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
+
+  const [reason, setReason] = useState("");
+  const [internalNotes, setInternalNotes] = useState("");
+  const [reviewSteps, setReviewSteps] = useState([]);
+  const [skipNotification, setSkipNotification] = useState(false);
   const [previewDoc, setPreviewDoc] = useState(null);
 
   useEffect(() => {
-    setAdminNotes(verification?.verification?.reason || "");
+    if (verification?.verification) {
+      setReason(verification.verification.reason || "");
+      setInternalNotes(verification.verification.internalNotes || "");
+
+      const initialSteps = (verification.verification.internalReviewSteps || []).map((step) => ({
+        id: step.id,
+        label: step.label,
+        description: step.description,
+        required: Boolean(step.required),
+        completed: Boolean(step.completed || step.checked),
+        checked: Boolean(step.completed || step.checked),
+      }));
+      setReviewSteps(initialSteps);
+    }
   }, [verification]);
+
+  const { user, verification: details, adminActions } = verification || {};
+
+  const hasUncheckedRequiredSteps = useMemo(() => {
+    return reviewSteps.some((step) => step.required && !step.completed);
+  }, [reviewSteps]);
 
   if (!verification) return null;
 
-  const { user, verification: details, adminActions } = verification;
+  const handleStepToggle = (stepId) => {
+    setReviewSteps((prev) =>
+      prev.map((step) =>
+        step.id === stepId
+          ? { ...step, completed: !step.completed, checked: !step.checked }
+          : step
+      )
+    );
+  };
+
+  const handleActionClick = (decisionStatus) => {
+    const payload = {
+      status: decisionStatus,
+      reason: reason.trim(),
+      internalNotes: internalNotes.trim(),
+      internalReviewSteps: reviewSteps.map((s) => ({
+        id: s.id,
+        label: s.label,
+        completed: Boolean(s.completed),
+        checked: Boolean(s.checked),
+      })),
+      skipNotification,
+    };
+
+    onDecision(payload);
+  };
 
   return (
     <>
       <Drawer
-        anchor="right"
+        anchor={isMobile ? "bottom" : "right"}
         open={open}
         onClose={onClose}
         PaperProps={{
           sx: {
-            width: { xs: "100%", sm: 440 },
+            width: isMobile ? "100%" : 420,
+            maxWidth: "100vw",
+            height: isMobile ? "88vh" : "100%",
+            maxHeight: isMobile ? "88vh" : "100%",
             boxSizing: "border-box",
             bgcolor: "#FFFFFF",
-            overflowX: "hidden", // Prevents bottom horizontal scrollbar
+            overflow: "hidden",
+            borderTopLeftRadius: isMobile ? "20px" : 0,
+            borderTopRightRadius: isMobile ? "20px" : 0,
           },
         }}
       >
@@ -58,26 +118,51 @@ const VerificationDrawer = ({
             display: "flex",
             flexDirection: "column",
             height: "100%",
+            width: "100%",
             boxSizing: "border-box",
+            overflow: "hidden",
           }}
         >
-          {/* 1. STICKY HEADER WITH PADDING */}
+          {/* Mobile Handle Pill */}
+          {isMobile && (
+            <Box
+              sx={{
+                width: "100%",
+                display: "flex",
+                justifyContent: "center",
+                pt: 1.2,
+                pb: 0.5,
+              }}
+            >
+              <Box
+                sx={{
+                  width: 36,
+                  height: 4,
+                  bgcolor: "#CBD5E1",
+                  borderRadius: 2,
+                }}
+              />
+            </Box>
+          )}
+
+          {/* 1. HEADER */}
           <Box
             sx={{
               display: "flex",
               justifyContent: "space-between",
               alignItems: "center",
-              px: 3,
-              pt: 3,
+              px: { xs: 2, sm: 2.5 },
+              pt: isMobile ? 1 : 2.5,
               pb: 2,
               borderBottom: "1px solid #F1F5F9",
+              flexShrink: 0,
             }}
           >
             <Box sx={{ display: "flex", alignItems: "center", gap: 1.2 }}>
-              <VerifiedUserOutlined sx={{ color: "#017E53", fontSize: 24 }} />
+              <VerifiedUserOutlined sx={{ color: "#017E53", fontSize: 22 }} />
               <Typography
                 variant="h6"
-                sx={{ fontWeight: 800, color: "#111827", fontSize: "18px" }}
+                sx={{ fontWeight: 800, color: "#111827", fontSize: "17px" }}
               >
                 Review Details
               </Typography>
@@ -95,18 +180,18 @@ const VerificationDrawer = ({
             </IconButton>
           </Box>
 
-          {/* 2. SCROLLABLE CONTENT BODY WITH CLEAN GUTTERS */}
+          {/* 2. SCROLLABLE CONTENT BODY */}
           <Box
             sx={{
               flex: 1,
               overflowY: "auto",
               overflowX: "hidden",
-              px: 3,
-              py: 2.5,
+              px: { xs: 2, sm: 2.5 },
+              py: 2,
               display: "flex",
               flexDirection: "column",
-              gap: 2.5,
-              "&::-webkit-scrollbar": { width: "6px" },
+              gap: 2.2,
+              "&::-webkit-scrollbar": { width: "5px" },
               "&::-webkit-scrollbar-thumb": {
                 bgcolor: "#E2E8F0",
                 borderRadius: "10px",
@@ -117,7 +202,7 @@ const VerificationDrawer = ({
             <Paper
               elevation={0}
               sx={{
-                p: 2,
+                p: 1.8,
                 borderRadius: "14px",
                 border: "1px solid #E2E8F0",
                 bgcolor: "#F8FAFC",
@@ -127,18 +212,19 @@ const VerificationDrawer = ({
                 <Avatar
                   src={user?.avatar}
                   sx={{
-                    width: 48,
-                    height: 48,
+                    width: 44,
+                    height: 44,
                     border: "2px solid #017E53",
                     bgcolor: "#017E53",
                   }}
                 >
                   {user?.name?.[0]}
                 </Avatar>
-                <Box>
+                <Box sx={{ minWidth: 0, flex: 1 }}>
                   <Typography
-                    variant="subtitle1"
+                    variant="subtitle2"
                     sx={{ fontWeight: 800, color: "#0F172A", lineHeight: 1.2 }}
+                    noWrap
                   >
                     {user?.name}
                   </Typography>
@@ -195,7 +281,7 @@ const VerificationDrawer = ({
                 sx={{
                   display: "grid",
                   gridTemplateColumns: "1fr 1fr",
-                  gap: 1.5,
+                  gap: 1.2,
                 }}
               >
                 {(details?.documentChecklist || []).map((doc, idx) => (
@@ -221,14 +307,14 @@ const VerificationDrawer = ({
                       alt={doc.name}
                       sx={{
                         width: "100%",
-                        height: 90,
+                        height: 80,
                         objectFit: "cover",
                         display: "block",
                       }}
                     />
                     <Box
                       sx={{
-                        p: 1.2,
+                        p: 1,
                         display: "flex",
                         justifyContent: "space-between",
                         alignItems: "center",
@@ -238,14 +324,14 @@ const VerificationDrawer = ({
                         variant="caption"
                         sx={{
                           fontWeight: 700,
-                          fontSize: "11.5px",
+                          fontSize: "11px",
                           color: "#1E293B",
                         }}
                         noWrap
                       >
                         {doc.name}
                       </Typography>
-                      <OpenInNew sx={{ fontSize: 13, color: "#64748B", ml: 0.5 }} />
+                      <OpenInNew sx={{ fontSize: 13, color: "#64748B", ml: 0.5, flexShrink: 0 }} />
                     </Box>
                   </Box>
                 ))}
@@ -254,71 +340,89 @@ const VerificationDrawer = ({
 
             {/* Internal Review Steps */}
             <Box>
-              <Typography
-                variant="caption"
-                sx={{
-                  fontWeight: 800,
-                  color: "#475569",
-                  letterSpacing: "0.5px",
-                  textTransform: "uppercase",
-                  display: "block",
-                  mb: 1.2,
-                }}
-              >
-                Internal Review Steps
-              </Typography>
+              <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 1 }}>
+                <Typography
+                  variant="caption"
+                  sx={{
+                    fontWeight: 800,
+                    color: "#475569",
+                    letterSpacing: "0.5px",
+                    textTransform: "uppercase",
+                    display: "block",
+                  }}
+                >
+                  Internal Review Steps
+                </Typography>
+                <Typography variant="caption" sx={{ color: "#94A3B8", fontSize: "10.5px" }}>
+                  * required
+                </Typography>
+              </Box>
+
               <Box sx={{ display: "flex", flexDirection: "column", gap: 1 }}>
-                {(details?.internalReviewSteps || []).map((step) => (
+                {reviewSteps.map((step) => (
                   <Paper
                     key={step.id}
                     elevation={0}
+                    onClick={() => handleStepToggle(step.id)}
                     sx={{
-                      p: 1.5,
+                      p: 1.2,
                       borderRadius: "10px",
                       border: "1px solid #E2E8F0",
                       display: "flex",
                       alignItems: "flex-start",
                       gap: 1.2,
-                      bgcolor: "#FFFFFF",
+                      bgcolor: step.completed ? "#F0FDF4" : "#FFFFFF",
+                      cursor: "pointer",
                     }}
                   >
                     <Checkbox
                       size="small"
+                      checked={Boolean(step.completed)}
+                      onChange={() => handleStepToggle(step.id)}
+                      onClick={(e) => e.stopPropagation()}
                       sx={{
                         color: "#94A3B8",
                         p: 0,
-                        mt: 0.2,
+                        mt: 0.1,
                         "&.Mui-checked": { color: "#017E53" },
                       }}
                     />
-                    <Box>
+                    <Box sx={{ minWidth: 0 }}>
                       <Typography
                         variant="body2"
                         sx={{
                           fontWeight: 700,
                           color: "#0F172A",
-                          fontSize: "12.5px",
+                          fontSize: "12px",
                           lineHeight: 1.3,
                         }}
                       >
                         {step.label}{" "}
                         {step.required && (
-                          <span style={{ color: "#EF4444" }}>*</span>
+                          <span style={{ color: "#EF4444", fontWeight: 900 }}>*</span>
                         )}
                       </Typography>
-                      <Typography
-                        variant="caption"
-                        sx={{ color: "#64748B", fontSize: "11px", display: "block", mt: 0.3 }}
-                      >
-                        {step.description}
-                      </Typography>
+                      {step.description && (
+                        <Typography
+                          variant="caption"
+                          sx={{ color: "#64748B", fontSize: "10.5px", display: "block", mt: 0.2 }}
+                        >
+                          {step.description}
+                        </Typography>
+                      )}
                     </Box>
                   </Paper>
                 ))}
               </Box>
+
+              {hasUncheckedRequiredSteps && (
+                <Alert severity="info" sx={{ mt: 1.2, borderRadius: "8px", fontSize: "11px", py: 0.3 }}>
+                  Check all required (*) items before approving.
+                </Alert>
+              )}
             </Box>
 
-            {/* Audit Trail */}
+            {/* Decision Reason (User-Facing) */}
             <Box>
               <Typography
                 variant="caption"
@@ -328,139 +432,165 @@ const VerificationDrawer = ({
                   letterSpacing: "0.5px",
                   textTransform: "uppercase",
                   display: "block",
-                  mb: 1.2,
+                  mb: 0.8,
                 }}
               >
-                Audit Trail
-              </Typography>
-              <Box sx={{ display: "flex", flexDirection: "column", gap: 1.5 }}>
-                {(details?.auditTrail || []).map((trail, idx) => (
-                  <Box key={idx} sx={{ display: "flex", gap: 1.5 }}>
-                    <Box
-                      sx={{
-                        width: 8,
-                        height: 8,
-                        borderRadius: "50%",
-                        bgcolor: "#017E53",
-                        mt: 0.7,
-                        flexShrink: 0,
-                      }}
-                    />
-                    <Box>
-                      <Typography
-                        variant="caption"
-                        sx={{
-                          fontWeight: 700,
-                          color: "#1E293B",
-                          display: "block",
-                        }}
-                      >
-                        {trail.action}
-                      </Typography>
-                      <Typography
-                        variant="caption"
-                        sx={{ color: "#64748B", fontSize: "11px", display: "block" }}
-                      >
-                        {trail.details?.message}
-                      </Typography>
-                      <Typography
-                        variant="caption"
-                        sx={{ color: "#94A3B8", fontSize: "10px" }}
-                      >
-                        {trail.timestamp} • by {trail.performedBy}
-                      </Typography>
-                    </Box>
-                  </Box>
-                ))}
-              </Box>
-            </Box>
-
-            {/* Admin Notes */}
-            <Box>
-              <Typography
-                variant="caption"
-                sx={{
-                  fontWeight: 800,
-                  color: "#475569",
-                  letterSpacing: "0.5px",
-                  textTransform: "uppercase",
-                  display: "block",
-                  mb: 1,
-                }}
-              >
-                Admin Notes
+                Decision Reason (Visible to User)
               </Typography>
               <TextField
                 fullWidth
                 multiline
-                rows={3}
-                placeholder="Enter rejection reason or internal notes..."
-                value={adminNotes}
-                onChange={(e) => setAdminNotes(e.target.value)}
+                rows={2}
+                placeholder="Specify reason for decision..."
+                value={reason}
+                onChange={(e) => setReason(e.target.value)}
                 sx={{
                   "& .MuiOutlinedInput-root": {
                     borderRadius: "10px",
                     bgcolor: "#F8FAFC",
-                    fontSize: "13px",
+                    fontSize: "12.5px",
                     "& fieldset": { borderColor: "#E2E8F0" },
                     "&.Mui-focused fieldset": { borderColor: "#017E53" },
                   },
                 }}
               />
             </Box>
+
+            {/* Internal Staff Notes */}
+            <Box>
+              <Typography
+                variant="caption"
+                sx={{
+                  fontWeight: 800,
+                  color: "#475569",
+                  letterSpacing: "0.5px",
+                  textTransform: "uppercase",
+                  display: "block",
+                  mb: 0.8,
+                }}
+              >
+                Internal Notes (Staff Only)
+              </Typography>
+              <TextField
+                fullWidth
+                multiline
+                rows={2}
+                placeholder="Internal review observation notes..."
+                value={internalNotes}
+                onChange={(e) => setInternalNotes(e.target.value)}
+                sx={{
+                  "& .MuiOutlinedInput-root": {
+                    borderRadius: "10px",
+                    bgcolor: "#F8FAFC",
+                    fontSize: "12.5px",
+                    "& fieldset": { borderColor: "#E2E8F0" },
+                    "&.Mui-focused fieldset": { borderColor: "#017E53" },
+                  },
+                }}
+              />
+            </Box>
+
+            {/* Skip Notification Checkbox */}
+            <FormControlLabel
+              control={
+                <Checkbox
+                  size="small"
+                  checked={skipNotification}
+                  onChange={(e) => setSkipNotification(e.target.checked)}
+                  sx={{ "&.Mui-checked": { color: "#017E53" } }}
+                />
+              }
+              label={
+                <Typography variant="caption" sx={{ color: "#475569", fontWeight: 600 }}>
+                  Skip email/SMS notification to user
+                </Typography>
+              }
+            />
           </Box>
 
-          {/* 3. STICKY FOOTER ACTIONS WITH BALANCED INSET PADDING */}
+          {/* 3. STICKY ACTION FOOTER */}
           <Box
             sx={{
-              p: 2.5,
+              p: 2,
               borderTop: "1px solid #F1F5F9",
-              display: "grid",
-              gridTemplateColumns: "1fr 1fr",
-              gap: 1.5,
+              display: "flex",
+              flexDirection: "column",
+              gap: 1,
               bgcolor: "#FFFFFF",
+              flexShrink: 0,
             }}
           >
+            <Box sx={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 1.2 }}>
+              <Button
+                variant="outlined"
+                disabled={actionLoading || !adminActions?.canReject}
+                onClick={() => handleActionClick("rejected")}
+                sx={{
+                  borderColor: "#FCA5A5",
+                  color: "#DC2626",
+                  fontWeight: 700,
+                  borderRadius: "10px",
+                  py: 1,
+                  textTransform: "none",
+                  fontSize: "13px",
+                  "&:hover": {
+                    borderColor: "#EF4444",
+                    bgcolor: "#FEF2F2",
+                  },
+                }}
+              >
+                Reject
+              </Button>
+              <Button
+                variant="contained"
+                disabled={
+                  actionLoading ||
+                  !adminActions?.canApprove ||
+                  hasUncheckedRequiredSteps
+                }
+                onClick={() => handleActionClick("approved")}
+                sx={{
+                  bgcolor: "#017E53",
+                  color: "#FFFFFF",
+                  fontWeight: 700,
+                  borderRadius: "10px",
+                  py: 1,
+                  textTransform: "none",
+                  fontSize: "13px",
+                  boxShadow: "none",
+                  "&:hover": {
+                    bgcolor: "#016744",
+                  },
+                  "&.Mui-disabled": {
+                    bgcolor: "#E2E8F0",
+                    color: "#94A3B8",
+                  },
+                }}
+              >
+                Approve
+              </Button>
+            </Box>
+
             <Button
-              variant="outlined"
-              disabled={actionLoading || !adminActions?.canReject}
-              onClick={() => onDecision("rejected", adminNotes)}
+              variant="text"
+              fullWidth
+              disabled={actionLoading}
+              onClick={() => handleActionClick("pending")}
+              startIcon={<BookmarkBorderOutlined sx={{ fontSize: 16 }} />}
               sx={{
-                borderColor: "#FCA5A5",
-                color: "#DC2626",
+                color: "#475569",
                 fontWeight: 700,
-                borderRadius: "10px",
-                py: 1.2,
+                fontSize: "12px",
                 textTransform: "none",
-                fontSize: "14px",
+                py: 0.6,
+                borderRadius: "8px",
                 "&:hover": {
-                  borderColor: "#EF4444",
-                  bgcolor: "#FEF2F2",
+                  bgcolor: "#F8FAFC",
+                  color: "#0F172A",
                 },
               }}
             >
-              Reject
-            </Button>
-            <Button
-              variant="contained"
-              disabled={actionLoading || !adminActions?.canApprove}
-              onClick={() => onDecision("approved", adminNotes)}
-              sx={{
-                bgcolor: "#017E53",
-                color: "#FFFFFF",
-                fontWeight: 700,
-                borderRadius: "10px",
-                py: 1.2,
-                textTransform: "none",
-                fontSize: "14px",
-                boxShadow: "none",
-                "&:hover": {
-                  bgcolor: "#016744",
-                  boxShadow: "0 4px 12px rgba(1, 126, 83, 0.2)",
-                },
-              }}
-            >
-              Approve
+              Save Progress & Keep Pending
             </Button>
           </Box>
         </Box>

@@ -83,30 +83,42 @@ const ManageVerifications = () => {
     );
   }, [verifications, searchQuery]);
 
-  const handleDecision = async (decision, notes) => {
+  const handleDecision = async (payload) => {
     if (!selectedVerification) return;
     try {
       setActionLoading(true);
-      const token = sessionStorage.getItem("token") || localStorage.getItem("token");
+      const authToken = sessionStorage.getItem("userToken")
+
       await axios.patch(
         `${uri}admin/verifications/${selectedVerification.id}`,
+        payload,
         {
-          status: decision,
-          reason: notes,
-        },
-        { headers: token ? { Authorization: `Bearer ${token}` } : {} }
+          headers: authToken ? { Authorization: `Bearer ${authToken}` } : {},
+        }
       );
 
+      // Reflect updated status, reason, and steps locally
       setVerifications((prev) =>
         prev.map((item) =>
           item.id === selectedVerification.id
-            ? { ...item, verification: { ...item.verification, status: decision, reason: notes } }
+            ? {
+                ...item,
+                verification: {
+                  ...item.verification,
+                  status: payload.status,
+                  reason: payload.reason,
+                  internalNotes: payload.internalNotes,
+                  internalReviewSteps: payload.internalReviewSteps,
+                },
+              }
             : item
         )
       );
+
       setIsDrawerOpen(false);
     } catch (err) {
-      console.error(`Failed to ${decision} verification:`, err);
+      console.error("Failed to update verification status:", err.response || err);
+      alert(err.response?.data?.message || "Failed to update verification request.");
     } finally {
       setActionLoading(false);
     }

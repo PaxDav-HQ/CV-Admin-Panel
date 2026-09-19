@@ -16,7 +16,7 @@ const DashboardHeader = () => {
           Here's what's happening on your marketplace today.
         </Typography>
       </div>
-      <Stack direction="row" spacing={1.5}>
+      {/* <Stack direction="row" spacing={1.5}>
         <Button
           variant="outlined"
           startIcon={<FilterListOutlined sx={{ fontSize: 18 }} />}
@@ -49,7 +49,7 @@ const DashboardHeader = () => {
         >
           Export
         </Button>
-      </Stack>
+      </Stack> */}
     </div>
   );
 };

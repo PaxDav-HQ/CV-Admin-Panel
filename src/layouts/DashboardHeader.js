@@ -119,8 +119,8 @@ const DashboardHeader = () => {
             <Typography fontWeight={700} fontSize={15} lineHeight={1.2}>
               {currentUser?.firstname} {currentUser?.lastname}
             </Typography>
-            <Typography fontSize={12} color="text.secondary">
-              Pro Member
+            <Typography fontSize={12} color="text.secondary" className="fw-bold">
+              {currentUser?.role?.toUpperCase().replace("_", " ")}
             </Typography>
           </Box>
 

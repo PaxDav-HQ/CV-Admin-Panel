@@ -185,7 +185,7 @@ const ManagePayouts = () => {
         isDrawerOpen={isDrawerOpen}
         onRowClick={(row) => {
           setSelectedRequest(row);
-          setIsDrawerOpen(true);
+          // setIsDrawerOpen(true);
         }}
         searchQuery={searchQuery}
         onSearchChange={setSearchQuery}

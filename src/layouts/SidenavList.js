@@ -58,7 +58,7 @@ const SidenavList = () => {
         { title: "Add New Listing", path: "/admin/property-types" }
       ]
     },
-    // { title: "Services", icon: <WorkOutlineOutlined />, path: "/admin/services" },
+    { title: "Services", icon: <WorkOutlineOutlined />, path: "/admin/services" },
     // { title: "Bookings", icon: <CalendarTodayOutlined />, path: "/admin/bookings" },
     { title: "Verification", icon: <VerifiedUserOutlined />, path: "/admin/verification" },
     { title: "Payouts", icon: <AccountBalanceWalletOutlined />, path: "/admin/payouts" },
