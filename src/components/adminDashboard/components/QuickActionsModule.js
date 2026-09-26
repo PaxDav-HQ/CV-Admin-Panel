@@ -14,8 +14,7 @@ import { useNavigate } from "react-router-dom";
 const QuickActionsModule = ({ pendingVerificationsCount = 1 }) => {
   const navigate = useNavigate();
   const actions = [
-    { label: "Add Property / Listing", icon: <AddHomeWorkOutlined sx={{ fontSize: 18, color: "#6B7280" }} />, route: "/admin/property-types" },
-    { label: "Add Services", icon: <HandymanOutlined sx={{ fontSize: 18, color: "#6B7280" }} />, route: "/admin/services" },
+    { label: "Add Property / Listing", icon: <AddHomeWorkOutlined sx={{ fontSize: 18, color: "#6B7280" }} />, route: "/admin/property-types" },    
     // { label: "Send Announcement", icon: <CampaignOutlined sx={{ fontSize: 18, color: "#6B7280" }} />, route: "/admin/announcements" },
     { label: "Manage Users", icon: <ManageAccountsOutlined sx={{ fontSize: 18, color: "#6B7280" }} />, route: "/admin/users" },
     {
