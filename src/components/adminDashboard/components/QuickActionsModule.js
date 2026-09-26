@@ -23,7 +23,7 @@ const QuickActionsModule = ({ pendingVerificationsCount = 1 }) => {
       badge: pendingVerificationsCount,
       route: "/admin/verification",
     },
-    { label: "View Reports", route: "/admin/reports", icon: <AssessmentOutlined sx={{ fontSize: 18, color: "#6B7280" }} /> },
+    { label: "View Reports", route: "/admin/analytics", icon: <AssessmentOutlined sx={{ fontSize: 18, color: "#6B7280" }} /> },
   ];
 
   return (
